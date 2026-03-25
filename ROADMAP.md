@@ -4,35 +4,23 @@ Personal home server stack based on a fork of [htpc-download-box](https://github
 
 ---
 
-## WS1: Repo Hygiene ← in progress
+## WS1: Repo Hygiene ✓
 
 Clean up the repo so it reflects what's actually running, not upstream docs.
 
-- [ ] Remove or replace upstream README (references Jackett, NZBGet, Plex — none of which are in use)
-- [ ] Delete Vagrantfile (not used)
-- [ ] Stage the `docker-compose.yml → compose.yml` rename
-- [ ] Restore `.env.example` with placeholder values (was deleted; documents required vars)
-- [ ] Decide: commit `.claude/` and `openspec/` or gitignore them
-- [ ] Verify `.gitignore` covers all secrets (`.env` is already there)
-- [ ] Write a short README that describes the actual stack
+- [x] Remove or replace upstream README (references Jackett, NZBGet, Plex — none of which are in use)
+- [x] Delete Vagrantfile (not used)
+- [x] Stage the `docker-compose.yml → compose.yml` rename
+- [x] Restore `.env.example` with placeholder values (was deleted; documents required vars)
+- [x] Decide: commit `.claude/` and `openspec/` or gitignore them
+- [x] Verify `.gitignore` covers all secrets (`.env` is already there)
+- [x] Write a short README that describes the actual stack
 
 ---
 
-## WS2: Deploy Workflow (laptop → cartman)
+## WS2: Deploy Workflow ✓
 
-Make it easy to push changes from the laptop and apply them on the server.
-
-**Goal:** `git push` from laptop, then a single command applies it on cartman.
-
-Options to decide between:
-- **Manual**: `ssh cartman`, `cd ~/dev/htpc-download-box`, `git pull`, `docker compose up -d`
-- **Makefile target**: `make deploy` runs the above over SSH from laptop
-- **Server-side git hook**: push triggers an automatic pull + restart on cartman
-
-Suggested tasks:
-- [ ] Add `Makefile` with `deploy` target (SSH + pull + compose up)
-- [ ] Document the server path where the repo lives on cartman
-- [ ] Document how Docker starts on boot (systemd `docker.service` + `restart: unless-stopped`)
+`make deploy` SSHs to cartman, pulls latest commits, and runs `docker compose up -d`. Script lives at `bin/deploy.sh`.
 
 ---
 
@@ -50,42 +38,13 @@ Suggested tasks:
 
 ---
 
-## WS4: Access & Service Portal
+## WS4: Access & Service Portal ✓
 
-Make services accessible with friendly hostnames, internally and over Tailscale.
+Traefik + Homepage running at `*.home.kurup.net`. TLS via Let's Encrypt + Cloudflare DNS challenge. Split DNS: EdgeRouter for LAN, Cloudflare for Tailscale. Traefik dashboard protected with basicAuth.
 
-**Current state:** raw IPs + ports (`192.168.1.20:8096`)
+**Possible future simplification:** Move Traefik to `network_mode: host` (consistent with all other services) so backend URLs in `config/traefik/dynamic/services.yml` can use `localhost` instead of the hardcoded `192.168.1.20` IP.
 
-**Goal:** friendly names + a portal page with links to all services
-
-**Suggested approach:**
-- **Nginx Proxy Manager** (NPM) — GUI-based reverse proxy, easy to manage
-  - Maps `jellyfin.cartman` → `localhost:8096`, etc.
-  - Works the same over Tailscale (Tailscale IP resolves to same NPM)
-- **Homepage** or **Homarr** — dashboard/portal with service tiles and status indicators
-  - Integrates with Sonarr/Radarr/Jellyfin APIs to show live status
-- **Local DNS** — point `*.cartman` at `192.168.1.20` on your router, or use Pi-hole/AdGuard
-
-**Tailscale specifics:**
-- Tailscale is already on cartman — services are reachable on Tailscale IP at same ports today
-- Adding NPM means only one port needs to be exposed through Tailscale (443)
-- Optional: Tailscale Funnel for external access without being on the VPN
-
-**Stack:** Traefik (reverse proxy) + Homepage (dashboard)
-**Domain:** `*.home.kurup.net` (on `kurup.net` in Cloudflare)
-**TLS:** Let's Encrypt via Cloudflare DNS challenge (no ports opened to internet)
-**DNS:** Split — Ubiquiti router overrides `*.home.kurup.net` → `192.168.1.20` for LAN; Cloudflare points to Tailscale IP for remote access
-
-**Suggested tasks:**
-- [ ] Add Traefik to compose.yml with Cloudflare DNS challenge and Let's Encrypt
-- [ ] Add Homepage to compose.yml with service tiles and *arr API integrations
-- [ ] Add Cloudflare API token to `.env` / `.env.example`
-- [ ] Configure Ubiquiti router: wildcard DNS `*.home.kurup.net` → `192.168.1.20`
-- [ ] Configure Cloudflare DNS: `*.home.kurup.net` → cartman Tailscale IP
-- [ ] Add Traefik labels to each service in compose.yml
-- [ ] Write Homepage config YAML for all services
-
-**Future:** Consider adding Pi-hole for network-wide ad blocking + can also serve as the local DNS resolver for split DNS (replacing the Ubiquiti manual config)
+**Future:** Consider Pi-hole for network-wide ad blocking + local DNS resolver (replaces EdgeRouter dnsmasq config)
 
 ---
 
@@ -104,9 +63,8 @@ Config is small (MBs) and changes infrequently — easy to back up. Media is lar
 
 **Suggested tasks:**
 - [x] Determine where `/mnt/storage` lives on cartman — local ZFS pool
-  - ZFS snapshots are available as a free first line of defense (protect against accidental deletion/corruption)
-  - Still need offsite backup for hardware failure/theft
-- [ ] Decide on backup destination (cloud vs. local)
+- [ ] Set up automatic ZFS snapshots via cron (first line of defense, free — protects against accidental deletion/corruption)
+- [ ] Decide on offsite backup destination (cloud vs. local — still needed for hardware failure/theft)
 - [ ] Add `bin/backup.sh` + `make backup` target (mirrors `$CONFIG_ROOT` off cartman)
 - [ ] Schedule backup via cron on cartman or as a periodic manual step
 
@@ -142,3 +100,47 @@ Evaluate a Readarr replacement for automated ebook downloading. Book acquisition
 - [ ] Evaluate LazyLibrarian: feature set, usenet support, last release date
 - [ ] Pick one and add to compose.yml, wiring to SABnzbd + Calibre library
 - [ ] Verify downloaded books appear in Calibre-Web automatically
+
+---
+
+## WS8: Monitoring
+
+Health and performance visibility for the stack.
+
+**Services to evaluate:**
+- **Uptime Kuma** — lightweight uptime monitor with a clean dashboard; integrates with Homepage; can alert via email, Slack, etc. when a service goes down
+- **Scrutiny** — S.M.A.R.T. disk health monitoring; important since the ZFS pool is on local hardware — gives early warning before drive failure
+- **Netdata** or **Grafana + Prometheus** — system metrics (CPU, memory, disk I/O, network); useful for diagnosing performance issues
+
+**Suggested tasks:**
+- [ ] Add Uptime Kuma to compose.yml and Homepage dashboard
+- [ ] Add Scrutiny to compose.yml; configure it to monitor cartman's drives
+- [ ] Decide on system metrics: Netdata (simple, self-contained) vs Grafana stack (more powerful, more complex)
+
+---
+
+## WS9: Media Requests (Jellyseerr)
+
+Let family request movies and TV shows without needing access to Radarr/Sonarr directly.
+
+**Jellyseerr** sits in front of Radarr/Sonarr and provides a Netflix-style request UI. Family browses available media, submits requests, and Radarr/Sonarr handle the download automatically.
+
+**Suggested tasks:**
+- [ ] Add `jellyseerr` service to compose.yml
+- [ ] Connect Jellyseerr to Jellyfin (for user auth), Radarr, and Sonarr
+- [ ] Add Traefik route (`requests.home.kurup.net` or similar)
+- [ ] Add tile to Homepage
+- [ ] Invite family members and verify request flow end-to-end
+
+---
+
+## WS10: Automatic Container Updates (Watchtower)
+
+Keep containers up to date with security patches without manual intervention.
+
+**Watchtower** monitors running containers and pulls updated images automatically. Can be configured to notify-only (recommended to start) rather than auto-update, so you control when updates are applied.
+
+**Suggested tasks:**
+- [ ] Decide: notify-only vs auto-update (notify-only recommended — review updates before applying)
+- [ ] Add `watchtower` service to compose.yml scoped to specific containers (exclude grampsweb, calibre-web to avoid breaking changes)
+- [ ] Configure notification channel (email or other)
