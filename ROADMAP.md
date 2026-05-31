@@ -103,19 +103,18 @@ Evaluate a Readarr replacement for automated ebook downloading. Book acquisition
 
 ---
 
-## WS8: Monitoring
+## WS8: Monitoring ✓
 
 Health and performance visibility for the stack.
 
-**Services to evaluate:**
-- **Uptime Kuma** — lightweight uptime monitor with a clean dashboard; integrates with Homepage; can alert via email, Slack, etc. when a service goes down
-- **Scrutiny** — S.M.A.R.T. disk health monitoring; important since the ZFS pool is on local hardware — gives early warning before drive failure
-- **Netdata** or **Grafana + Prometheus** — system metrics (CPU, memory, disk I/O, network); useful for diagnosing performance issues
+- [x] Add Uptime Kuma to compose.yml (`uptime.home.kurup.net`) and Homepage dashboard
+- [x] Add Scrutiny to compose.yml (`scrutiny.home.kurup.net`) with S.M.A.R.T. disk monitoring
 
-**Suggested tasks:**
-- [ ] Add Uptime Kuma to compose.yml and Homepage dashboard
-- [ ] Add Scrutiny to compose.yml; configure it to monitor cartman's drives
-- [ ] Decide on system metrics: Netdata (simple, self-contained) vs Grafana stack (more powerful, more complex)
+**Post-deploy setup:**
+- Uptime Kuma: create monitors for each service via the web UI, then grab the status page slug for the Homepage widget (`slug: default`)
+- Scrutiny: verify it detects cartman's drives; if more than `/dev/sda`, add additional `devices:` entries in compose.yml
+
+System metrics (CPU, memory, disk I/O) deferred to WS11.
 
 ---
 
@@ -131,6 +130,20 @@ Let family request movies and TV shows without needing access to Radarr/Sonarr d
 - [ ] Add Traefik route (`requests.home.kurup.net` or similar)
 - [ ] Add tile to Homepage
 - [ ] Invite family members and verify request flow end-to-end
+
+---
+
+## WS11: System Metrics
+
+CPU, memory, disk I/O, and network visibility for cartman.
+
+**Options:**
+- **Netdata** — simple, self-contained, minimal config; built-in dashboards
+- **Grafana + Prometheus** — more powerful, more complex; better for long-term retention and custom dashboards
+
+**Suggested tasks:**
+- [ ] Decide: Netdata vs Grafana stack
+- [ ] Add chosen service(s) to compose.yml and Homepage dashboard
 
 ---
 

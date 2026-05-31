@@ -80,6 +80,20 @@ http:
       tls:
         certResolver: cloudflare
 
+    uptime-kuma:
+      rule: "Host(`uptime.home.kurup.net`)"
+      entryPoints: [websecure]
+      service: uptime-kuma
+      tls:
+        certResolver: cloudflare
+
+    scrutiny:
+      rule: "Host(`scrutiny.home.kurup.net`)"
+      entryPoints: [websecure]
+      service: scrutiny
+      tls:
+        certResolver: cloudflare
+
     traefik:
       rule: "Host(`traefik.home.kurup.net`)"
       entryPoints: [websecure]
@@ -138,3 +152,13 @@ http:
       loadBalancer:
         servers:
           - url: "http://192.168.1.20:5000"
+
+    uptime-kuma:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.20:3001"
+
+    scrutiny:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.20:8085"

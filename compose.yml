@@ -186,6 +186,35 @@ services:
       - ${CONFIG_ROOT}/calibre-web:/config
       - ${MEDIA_ROOT}/media/books:/books
 
+  uptime-kuma:
+    container_name: uptime-kuma
+    image: louislam/uptime-kuma:1
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ${CONFIG_ROOT}/uptime-kuma:/app/data
+
+  scrutiny:
+    container_name: scrutiny
+    image: ghcr.io/analogj/scrutiny:master-omnibus
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - "8085:8080"
+    cap_add:
+      - SYS_RAWIO
+    volumes:
+      - /run/udev:/run/udev:ro
+      - ${CONFIG_ROOT}/scrutiny:/opt/scrutiny/config
+      - scrutiny-influxdb:/opt/scrutiny/influxdb
+    devices:
+      - /dev/sda:/dev/sda
+      - /dev/sdb:/dev/sdb
+      - /dev/sdc:/dev/sdc
+      - /dev/sdd:/dev/sdd
+      - /dev/sde:/dev/sde
+      - /dev/sdf:/dev/sdf
+
   # https://www.grampsweb.org/install_setup/deployment/
   grampsweb: &grampsweb
     container_name: grampsweb
@@ -225,4 +254,5 @@ services:
     container_name: grampsweb_redis
     restart: always
 
-
+volumes:
+  scrutiny-influxdb:

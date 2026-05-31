@@ -71,3 +71,15 @@
           url: https://traefik.home.kurup.net
           username: "{{HOMEPAGE_VAR_TRAEFIK_USERNAME}}"
           password: "{{HOMEPAGE_VAR_TRAEFIK_PASSWORD}}"
+    - Uptime Kuma:
+        href: https://uptime.home.kurup.net
+        description: Uptime monitoring
+        icon: uptime-kuma.png
+        widget:
+          type: uptimekuma
+          url: http://localhost:3001
+          slug: default
+    - Scrutiny:
+        href: https://scrutiny.home.kurup.net
+        description: Disk health (S.M.A.R.T.)
+        icon: scrutiny.png
