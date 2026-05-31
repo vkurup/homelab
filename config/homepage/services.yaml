@@ -79,6 +79,7 @@
           type: uptimekuma
           url: http://localhost:3001
           slug: default
+          apikey: "{{HOMEPAGE_VAR_UPTIME_KUMA_API_KEY}}"
     - Scrutiny:
         href: https://scrutiny.home.kurup.net
         description: Disk health (S.M.A.R.T.)
