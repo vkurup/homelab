@@ -36,6 +36,17 @@ Some settings live inside each service's config volume (`$CONFIG_ROOT/<service>/
 - **Deluge download location.** Set both *Download to* and *Move completed to* to `/data/torrents` in the web UI (Preferences → Downloads). The image defaults to `/downloads`, which isn't mounted — downloads will connect to peers but stall at 0% because Deluge can't write the files. `/data/torrents` matches what Sonarr/Radarr see, so completed imports work without remote-path mapping. (Don't work around this by mounting `/downloads` instead — it breaks that path consistency.)
 - **VPN P2P location.** `SERVER_COUNTRIES` in `compose.yml` must be a location your VPN provider permits P2P on, or torrents announce fine but never connect to peers.
 
+### Seeding & automatic cleanup
+
+Goal: after a download finishes, Radarr/Sonarr import it (hardlink into `/data/media`, so it costs no extra disk), the torrent keeps seeding to a target ratio, then gets removed automatically — leaving the library copy for Jellyfin. Set it up once:
+
+1. **Radarr & Sonarr** → Settings → Download Clients → enable **Remove Completed Downloads**. This removes a torrent from Deluge (and deletes its data) once it's imported *and* finished seeding. (Radarr's Deluge integration does not expose seed-ratio fields, so the ratio is set in Deluge — next step.)
+2. **Deluge** → Preferences → Queue → check **Share Ratio Reached**, set the ratio (e.g. `2.0`), and choose **Pause torrent** (not *Remove torrent*). Deluge pauses the torrent at the ratio; Radarr/Sonarr then do the actual removal, keeping their records in sync. Letting Deluge remove it instead orphans files and desyncs the *arr history.
+
+Notes:
+- Because `/data/torrents` and `/data/media` share the `/data` mount, imports are **hardlinks** — the same bytes appear in both places (link count `2`) and seeding uses no extra space. Removing the torrent just drops the extra link; Jellyfin's copy is untouched.
+- **Private trackers** often require a minimum seed *time* (e.g. 72h) on top of ratio, which Deluge's ratio rule doesn't enforce — keep that in mind so you don't get penalised for removing too early.
+
 ## Deploy (from laptop)
 
 ```bash
