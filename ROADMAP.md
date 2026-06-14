@@ -157,3 +157,32 @@ Keep containers up to date with security patches without manual intervention.
 - [ ] Decide: notify-only vs auto-update (notify-only recommended — review updates before applying)
 - [ ] Add `watchtower` service to compose.yml scoped to specific containers (exclude grampsweb, calibre-web to avoid breaking changes)
 - [ ] Configure notification channel (email or other)
+
+---
+
+## WS12: Swap Deluge → qBittorrent
+
+Replace Deluge with qBittorrent as the torrent client. **Low-stakes** — Usenet (SABnzbd) is the primary downloader, so torrents are a fallback and there's little state worth preserving. Do a clean swap, not a fussy migration.
+
+**Why switch:** native Sonarr/Radarr seed-limit integration (Radarr manages/tracks seeding explicitly instead of inferring it from Deluge's paused state); built-in ratio **and** seed-time limits with no AutoRemovePlus plugin (fixes the "unpopular torrent never hits ratio, so it never gets cleaned up" gap); category→save-path management; a single Web UI password (no Deluge daemon-RPC `localclient` split); and active upstream development. qBittorrent is the de facto default for *arr stacks.
+
+**Constraints / gotchas (read before starting):**
+- **Reuse port 8112** for the qBittorrent Web UI (Deluge's old port) — avoids changing gluetun port mappings or Traefik. Do **not** use qBittorrent's default 8080; SABnzbd owns 8080 on gluetun.
+- qBittorrent runs behind gluetun (`network_mode: service:gluetun`), same as Deluge. No port forwarding on PureVPN, so incoming connections stay disabled (expected).
+- Mount `${MEDIA_ROOT}/torrents:/data/torrents` (same as Deluge) so imports **hardlink** with `/data/media` — keep the save path on the `/data` mount.
+- The linuxserver qBittorrent image sets a **random temporary Web UI password on first start** — read it from `docker logs qbittorrent`, then set a real one. (Ships libtorrent 2.x; a `libtorrentv1` image tag exists if compatibility/memory is an issue.)
+
+**Suggested tasks:**
+- [ ] Note any private-tracker torrents still seeding in Deluge (e.g. `auctor.tv`) so they can be re-added and kept seeding
+- [ ] compose.yml: remove the `deluge` service; add `qbittorrent` (`lscr.io/linuxserver/qbittorrent`, `network_mode: service:gluetun`, volumes `${CONFIG_ROOT}/qbittorrent:/config` + `${MEDIA_ROOT}/torrents:/data/torrents`, env `PUID`/`PGID`/`TZ` + `WEBUI_PORT=8112`); keep gluetun's `8112:8112` mapping
+- [ ] Traefik: rename the `deluge` router/service → `qbittorrent` in `config/traefik/dynamic/services.yml`, pointing at `gluetun:8112`
+- [ ] Homepage: swap the Deluge tile/widget for qBittorrent in `config/homepage/services.yaml`
+- [ ] Deploy; read the temp password from `docker logs qbittorrent`; set a real Web UI password
+- [ ] Configure qBittorrent: default save path `/data/torrents`; categories `radarr` and `sonarr`; Share Ratio Limiting = ratio `2.0` **or** seed time (e.g. 14 days) → action **Pause**
+- [ ] Radarr & Sonarr: remove the Deluge download client, add qBittorrent (host `127.0.0.1`, port `8112`, matching category); set the now-available Seed Ratio/Time fields; keep **Remove Completed Downloads** on
+- [ ] Re-add the noted private-tracker torrents to qBittorrent (add the .torrent/magnet, save to `/data/torrents`, **Force Recheck** → resumes seeding from the existing hardlinked files, no re-download)
+- [ ] Verify end-to-end: grab a title → download → import (hardlink, link count 2) → seed → auto-cleanup, Jellyfin copy intact
+- [ ] Update README "First-run service configuration" and CLAUDE.md to describe qBittorrent instead of Deluge
+- [ ] After a few days of confidence, delete `${CONFIG_ROOT}/deluge` on cartman
+
+**Rollback:** keep `${CONFIG_ROOT}/deluge` until qBittorrent is verified; revert the compose.yml change to bring Deluge back on 8112.
