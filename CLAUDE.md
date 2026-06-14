@@ -77,9 +77,7 @@ $CONFIG_ROOT/
 
 ### Manual Configuration Not Captured in compose.yml
 
-Some service settings live in `$CONFIG_ROOT/<service>/` (persisted volumes, **not** version-controlled) and must be set by hand after a fresh deploy:
-
-- **Deluge download location must be `/data/torrents`.** The linuxserver image defaults `download_location` (and `move_completed_path`) to `/downloads`, which is **not** mounted — torrents will connect to peers but stall at 0% because libtorrent can't write the files. Set both to `/data/torrents` (the mount of `$MEDIA_ROOT/torrents`) via the web UI (Preferences → Downloads) or `deluge-console`. This path also matches what Sonarr/Radarr see (`/data/torrents`), so no remote-path mapping is needed. Don't "fix" this by mounting `/downloads` — that would break the path consistency Sonarr/Radarr rely on.
+Some service settings live in `$CONFIG_ROOT/<service>/` (persisted volumes, **not** version-controlled) and must be set by hand after a fresh deploy. These are documented for humans under **"First-run service configuration"** in `README.md` — keep that section as the source of truth. Notably: Deluge's `download_location`/`move_completed_path` must be `/data/torrents` (not the image default `/downloads`, which isn't mounted), or torrents connect to peers but stall at 0%. Do not "fix" this by mounting `/downloads` — it breaks the path consistency Sonarr/Radarr rely on.
 
 ### Key Differences from README
 

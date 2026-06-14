@@ -29,6 +29,13 @@ cp .env.example .env
 docker compose up -d
 ```
 
+## First-run service configuration
+
+Some settings live inside each service's config volume (`$CONFIG_ROOT/<service>/`), which is **not** in this repo and survives across deploys. After a fresh setup you must set these by hand:
+
+- **Deluge download location.** Set both *Download to* and *Move completed to* to `/data/torrents` in the web UI (Preferences → Downloads). The image defaults to `/downloads`, which isn't mounted — downloads will connect to peers but stall at 0% because Deluge can't write the files. `/data/torrents` matches what Sonarr/Radarr see, so completed imports work without remote-path mapping. (Don't work around this by mounting `/downloads` instead — it breaks that path consistency.)
+- **VPN P2P location.** `SERVER_COUNTRIES` in `compose.yml` must be a location your VPN provider permits P2P on, or torrents announce fine but never connect to peers.
+
 ## Deploy (from laptop)
 
 ```bash
