@@ -14,7 +14,7 @@ services:
       - VPN_SERVICE_PROVIDER=purevpn
       - OPENVPN_USER=${OPENVPN_USER}
       - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
-      - SERVER_COUNTRIES=Netherlands # P2P-supported (PureVPN blocks torrenting on US/UK/CA servers)
+      - SERVER_COUNTRIES=Netherlands # gluetun VPN exit location
       - UPDATER_PERIOD=${UPDATER_PERIOD}
     ports:
       - 8112:8112 # port for deluge web UI to be reachable from local network
