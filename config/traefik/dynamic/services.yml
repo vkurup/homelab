@@ -102,6 +102,14 @@ http:
       tls:
         certResolver: cloudflare
 
+    # Home Assistant runs on a separate Raspberry Pi (HAOS), not this host.
+    homeassistant:
+      rule: "Host(`ha.home.kurup.net`)"
+      entryPoints: [websecure]
+      service: homeassistant
+      tls:
+        certResolver: cloudflare
+
   services:
     jellyfin:
       loadBalancer:
@@ -162,3 +170,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://192.168.1.20:8085"
+
+    homeassistant:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.248:8123"

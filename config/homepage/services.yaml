@@ -1,3 +1,13 @@
+- Smart Home:
+    - Home Assistant:
+        href: https://ha.home.kurup.net
+        description: Home automation hub
+        icon: home-assistant.png
+        widget:
+          type: homeassistant
+          url: http://192.168.1.248:8123
+          key: "{{HOMEPAGE_VAR_HOMEASSISTANT_API_KEY}}"
+
 - Media:
     - Jellyfin:
         href: https://jellyfin.home.kurup.net
