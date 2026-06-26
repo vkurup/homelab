@@ -49,9 +49,6 @@ changes so edits are diffable/revertable.
 add-on). `.gitignore` excludes `secrets.yaml`, `.storage/`, databases, logs, `custom_components/`
 (HACS-managed), `.cache/`, and `.ha_run.lock`. Tracked: the YAML config + stock blueprints.
 
-Workflow: the Pi is canonical (the HA UI also writes the automation/script/scene YAML). Commit
-on the Pi after changes; the workstation clone only ever **pulls** to browse/diff.
-
 ## Backups (disaster recovery)
 
 HAOS can't run the duplicacy client, so cartman **pulls** HA's native backups over SSH, then
@@ -118,8 +115,8 @@ A Homepage tile is in `config/homepage/services.yaml` (group "Smart Home"). Its 
 ## Pending manual steps
 
 - [x] Add the `http: trusted_proxies` block above to the Pi's `configuration.yaml` and restart HA.
-- [ ] Deploy the Traefik + Homepage changes to cartman (restart/redeploy the stack).
-- [ ] Confirm `ha.home.kurup.net` resolves (wildcard `*.home.kurup.net` DNS likely already covers it).
+- [x] Deploy the Traefik + Homepage changes to cartman (restart/redeploy the stack).
+- [x] Confirm `ha.home.kurup.net` resolves (wildcard `*.home.kurup.net` DNS likely already covers it).
 - [ ] Create the HA long-lived token and set `HOMEPAGE_VAR_HOMEASSISTANT_API_KEY`.
 - [ ] Restart Claude Code and confirm `/mcp` shows `home-assistant`.
 - [ ] Rename this repo `htpc-download-box` → `homelab` (touches the live stack — do deliberately).
