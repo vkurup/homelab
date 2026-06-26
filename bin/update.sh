@@ -2,7 +2,7 @@
 set -euo pipefail
 
 HOST="cartman"
-REPO_PATH="$HOME/dev/htpc-download-box"
+REPO_PATH="$HOME/dev/homelab"
 
 ssh "$HOST" bash -s -- "$REPO_PATH" <<'EOF'
 set -euo pipefail

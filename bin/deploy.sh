@@ -2,7 +2,7 @@
 set -euo pipefail
 
 HOST="cartman"
-REPO_PATH="$HOME/dev/htpc-download-box"
+REPO_PATH="$HOME/dev/homelab"
 
 # Pass REPO_PATH as a positional arg so the quoted heredoc has a clear
 # expansion boundary: nothing inside <<'EOF' expands on the local machine.

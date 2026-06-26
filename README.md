@@ -1,6 +1,6 @@
-# htpc-download-box
+# homelab
 
-Personal home server media stack running on `cartman` (192.168.1.20).
+Personal home server stack running on `cartman` (192.168.1.20).
 
 Forked from [sebgl/htpc-download-box](https://github.com/sebgl/htpc-download-box).
 
@@ -53,7 +53,7 @@ Notes:
 make deploy
 ```
 
-Pushes the latest committed changes to cartman and restarts affected containers. Requires SSH access to `cartman` and the repo cloned at `~/dev/htpc-download-box` on the server.
+Pushes the latest committed changes to cartman and restarts affected containers. Requires SSH access to `cartman` and the repo cloned at `~/dev/homelab` on the server.
 
 > **Note:** `.env` is never touched by deploy — manage it manually on cartman.
 
