@@ -18,8 +18,21 @@ Forked from [sebgl/htpc-download-box](https://github.com/sebgl/htpc-download-box
 | deluge | deluge.home.kurup.net | 8112 | Torrent downloader (via VPN) |
 | sabnzbd | sabnzbd.home.kurup.net | 8080 | Usenet downloader (via VPN) |
 | calibre-web | books.home.kurup.net | 8083 | Ebook library UI + OPDS catalog |
+| uptime-kuma | uptime.home.kurup.net | 3001 | Service uptime monitoring |
+| scrutiny | scrutiny.home.kurup.net | 8085 | Disk SMART health monitoring |
 | gluetun | — | — | VPN gateway (PureVPN via OpenVPN) |
 | grampsweb | grampsweb.home.kurup.net | 5000 | Genealogy app |
+
+Deluge and SABnzbd run behind the VPN (`network_mode: service:gluetun`); their ports are published on the gluetun container. Most other services use host networking, with Traefik providing the `*.home.kurup.net` hostnames and TLS (LAN + Tailscale only).
+
+### Not in the compose stack
+
+- **Home Assistant** — runs on a separate Raspberry Pi (HAOS), not on cartman. This repo only holds its Traefik route, Homepage tile, and the runbook: [docs/runbooks/home-assistant.md](docs/runbooks/home-assistant.md) (`ha.home.kurup.net`).
+
+## Docs
+
+- [docs/runbooks/](docs/runbooks/) — operational runbooks (access, backups, recovery)
+- [ROADMAP.md](ROADMAP.md) — planned work
 
 ## Setup
 

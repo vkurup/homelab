@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-A Docker Compose stack for an automated media download and playback setup. All services are run as containers using `compose.yml`.
+A homelab stack running on `cartman` (192.168.1.20): automated media download/playback plus supporting services (reverse proxy, dashboard, monitoring, genealogy). All services on cartman run as containers via `compose.yml`. The full service list with hostnames and ports lives in `README.md` — keep that table as the source of truth rather than duplicating it here.
+
+Home Assistant is **not** part of this stack — it runs on a separate Raspberry Pi (HAOS). This repo only carries its Traefik route, Homepage tile, and `docs/runbooks/home-assistant.md`.
 
 ## Common Commands
 
@@ -27,38 +29,17 @@ docker compose down
 
 ## Environment Variables
 
-Copy `.env.example` to `.env` and fill in values. The `.env` file is gitignored and never committed. Required variables:
-
-| Variable | Description |
-|---|---|
-| `TZ` | Timezone string (e.g. `America/New_York`) |
-| `PUID` / `PGID` | User/group IDs (`id $USER`) |
-| `MEDIA_ROOT` | Where media data is stored (e.g. `/mnt/storage/data`) |
-| `CONFIG_ROOT` | Where service configs are persisted (e.g. `/mnt/storage/config`) |
-| `OPENVPN_USER` / `OPENVPN_PASSWORD` | PureVPN credentials for gluetun |
-| `UPDATER_PERIOD` | How often gluetun updates server list (e.g. `24h`) |
+Copy `.env.example` to `.env` and fill in values. The `.env` file is gitignored and never committed — `.env.example` is the authoritative list of required variables (paths, PUID/PGID, VPN credentials, `CF_DNS_API_TOKEN` for Traefik TLS, `HOMEPAGE_VAR_*` API keys).
 
 ## Architecture
 
-All services are defined in `compose.yml`. The stack has two networking modes:
+All cartman services are defined in `compose.yml`. Networking:
 
 **Behind VPN (gluetun network):** `deluge` and `sabnzbd` run with `network_mode: service:gluetun`. Their ports are exposed on the gluetun container (8112 for Deluge web UI, 8080 for SABnzbd).
 
-**Host network:** `sonarr`, `radarr`, `bazarr`, `prowlarr`, `jellyfin` use `network_mode: host` and are accessible directly.
+**Host network:** most other services (`sonarr`, `radarr`, `bazarr`, `jellyfin`, `homepage`, `calibre-web`, `uptime-kuma`) use `network_mode: host`.
 
-### Services and Ports
-
-| Service | Port | Purpose |
-|---|---|---|
-| gluetun | — | VPN gateway (PureVPN via OpenVPN) |
-| deluge | 8112 | Torrent downloader (via VPN) |
-| sabnzbd | 8080 | Usenet downloader (via VPN) |
-| prowlarr | 9696 | Unified indexer manager for Sonarr/Radarr |
-| sonarr | 8989 | TV show monitoring and download orchestration |
-| radarr | 7878 | Movie monitoring and download orchestration |
-| bazarr | 6767 | Automatic subtitle downloader |
-| jellyfin | 8096 | Media server (replaces Plex in this setup) |
-| grampsweb | 5000 | Genealogy web app (unrelated to media stack) |
+**Traefik** (`config/traefik/`, version-controlled) fronts everything as `*.home.kurup.net` with a Let's Encrypt wildcard cert (Cloudflare DNS challenge). LAN + Tailscale only — nothing is internet-facing. Homepage config is in `config/homepage/` (version-controlled; secrets injected via `HOMEPAGE_VAR_*` env vars).
 
 ### Directory Layout (inside containers)
 
@@ -78,12 +59,3 @@ $CONFIG_ROOT/
 ### Manual Configuration Not Captured in compose.yml
 
 Some service settings live in `$CONFIG_ROOT/<service>/` (persisted volumes, **not** version-controlled) and must be set by hand after a fresh deploy. These are documented for humans under **"First-run service configuration"** in `README.md` — keep that section as the source of truth. Notably: Deluge's `download_location`/`move_completed_path` must be `/data/torrents` (not the image default `/downloads`, which isn't mounted), or torrents connect to peers but stall at 0%. Do not "fix" this by mounting `/downloads` — it breaks the path consistency Sonarr/Radarr rely on.
-
-### Key Differences from README
-
-The `compose.yml` in this repo diverges from the README in several ways:
-- **gluetun** replaces the old `dperson/openvpn-client` VPN container
-- **SABnzbd** replaces NZBGet as the usenet downloader
-- **Prowlarr** replaces Jackett as the indexer aggregator
-- **Jellyfin** replaces Plex as the media server
-- Sonarr/Radarr mount all of `MEDIA_ROOT` as `/data` (rather than separate tv/movies mounts)
