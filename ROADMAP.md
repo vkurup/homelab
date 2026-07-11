@@ -186,3 +186,71 @@ Replace Deluge with qBittorrent as the torrent client. **Low-stakes** — Usenet
 - [ ] After a few days of confidence, delete `${CONFIG_ROOT}/deluge` on cartman
 
 **Rollback:** keep `${CONFIG_ROOT}/deluge` until qBittorrent is verified; revert the compose.yml change to bring Deluge back on 8112.
+
+---
+
+## WS13: Family Ebook Library
+
+Make the existing Calibre-Web library (1.1 GB at `books.home.kurup.net`) usable by the whole family: 4 at home, 1 kid at college. Devices are 2 Kindles + Kindle Android apps, so **Send-to-Kindle email is the delivery path for every device** — no OPDS reader apps needed. Book acquisition stays manual (WS7 is separate).
+
+**Suggested tasks:**
+- [ ] Configure Send-to-Kindle email in Calibre-Web (Admin → Email settings — the dangling WS3 TODO). Needs an SMTP relay (e.g. a Gmail app password) and each device's `@kindle.com` address, with the sender allowlisted in each Amazon account's "Approved Personal Document E-mail List"
+- [ ] Create per-person Calibre-Web accounts (no shared admin login); set each user's Kindle address
+- [ ] Add the college kid's devices to the tailnet so `books.home.kurup.net` works remotely
+- [ ] Verify end-to-end from off-LAN: browse → Send to Kindle → book arrives on device
+- [ ] Write a short family-facing "how to get a book" note
+
+---
+
+## WS15: Home Assistant Buildout
+
+Buildout of the Home Assistant setup beyond tracking/backups (started 2026-06-26; infra design and current live state are in [docs/runbooks/home-assistant.md](docs/runbooks/home-assistant.md)).
+
+**Household:** 2 adults + 3 kids, all with phones. One kid home from college for summer 2026; two teenagers. Family of 5 total.
+
+**Hard constraints:**
+- Keep everything **as local as possible** (no cloud dependence).
+- Everything must **still work physically if HA/automation is broken** (e.g. wall switches/buttons a kid can always press; alerts are additive layers, never the only path).
+
+**Stated priorities:**
+- First win = **Security & alerts**.
+- Family UX wants: physical switches/buttons + phone app/dashboard + **local voice** (voice is later, most involved).
+
+**Roadmap:**
+- [ ] **Foundation** — add all 5 as Persons, HA Companion app on every phone → presence/away signal (currently only Vinod + 2 of his trackers exist)
+- [ ] **Security** — wire Reolink doorbell person/vehicle/package AI to phone push; Zigbee contact+motion sensors on exterior doors with away-mode gating
+- [ ] **Smart plugs** → lamps with physical control preserved
+- [ ] **Local voice** last (Voice PE or Whisper/Piper)
+
+**Open hardware unknowns (physically check):** exact Zigbee/Z-Wave USB stick model (may already have one); brand/model of the unboxed smart plugs (unknown/mixed).
+
+**Existing relevant hardware:** Reolink doorbell+chime (local AI detection), Shelly plug on garage freezer, 2 thermostats (upstairs/downstairs), Shield/speakers/XGIMI media. Kitchen area has 0 entities (unassigned devices to fix).
+
+---
+
+## WS14: Photos — Replace Google Photos (Immich)
+
+Make cartman the safe primary home for family photos, then migrate everyone off Google Photos.
+
+> **Deferred — not starting yet.** When picking this up: **run a `/grill-me` session on this plan first** to stress-test it (backup ordering, syncthing retirement, import strategy, family rollout) before writing a change proposal.
+
+**Current state (audited 2026-07-10):**
+- Phones (×5) → syncthing (a **host process** under `vinod`, not in compose.yml) → `~/Sync`; the curated library is `~/Pictures` (**415 GB**, Shotwell) on `/dev/sdd1` — a single non-ZFS disk at 72% full.
+- The live duplicacy backup (root's hourly cron, id `cartman` → wdmybook4tb → daily B2 copy) **explicitly excludes** `home/*/Pictures/*` (filter line 64). An old per-user repo that did include Pictures (id `cartman-home` → wdmybook3tb) last ran **2025-08-15** and never reached B2. **Google Photos is currently the only up-to-date backup of the photo library.**
+
+**Decisions made (2026-07):**
+- **Immich** as the platform; the Immich mobile app **replaces syncthing** for photo transport (per-user auto-backup over the tailnet, dedupe, sharing). Syncthing retires from photo duty.
+- Import the 415 GB into **Immich-managed storage on the ZFS pool** (1.8 TB free) via `immich-go` — not external-library mode against `~/Pictures`. Gets photos off the tired single disk onto snapshotted storage; full Immich features apply only to managed assets. `immich-go` can also merge a Google Takeout to recover album metadata.
+- Read-only sharing with non-Immich users is covered by Immich **shared links** (optional password/expiry/metadata-hiding).
+- **Backup is a hard prerequisite** for family adoption (WS5): the Immich photo dataset must reach B2 (~415 GB ≈ $2.50/mo). **Google stays on until a B2 restore is verified.**
+- Pin the Immich version and update deliberately — fast-moving project with breaking releases. Must be on the Watchtower exclude list (WS10).
+
+**Suggested tasks:**
+- [ ] Backup first: ZFS snapshot schedule for the photo dataset + duplicacy coverage that reaches B2 (new snapshot-id, or fix the `Pictures` exclusion story deliberately)
+- [ ] Add the Immich stack to compose.yml (server, machine-learning, Postgres w/ vector extension, Redis), photo storage on the ZFS pool; pass `/dev/dri` for QuickSync like Jellyfin
+- [ ] Traefik route (`photos.home.kurup.net`) + Homepage tile
+- [ ] Create 5 user accounts; set up partner sharing / family albums
+- [ ] Bulk-import `~/Pictures` with `immich-go`; optionally merge Google Takeout for albums; verify counts/dates
+- [ ] Install the Immich app on all 5 phones (tailnet), enable auto-backup, confirm it works away from home
+- [ ] Verify B2 backup of the photo dataset with a test restore
+- [ ] Decommission: remove photo folders from syncthing, retire the Shotwell workflow, keep `~/Pictures` untouched until confident, then downgrade Google Photos storage
