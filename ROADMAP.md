@@ -224,7 +224,7 @@ Buildout of the Home Assistant setup beyond tracking/backups (started 2026-06-26
 
 **Open hardware unknowns (physically check):** exact Zigbee/Z-Wave USB stick model (may already have one); brand/model of the unboxed smart plugs (unknown/mixed).
 
-**Existing relevant hardware:** Reolink doorbell+chime (local AI detection), Shelly plug on garage freezer, 2 thermostats (upstairs/downstairs), Shield/speakers/XGIMI media. Kitchen area has 0 entities (unassigned devices to fix).
+**Existing relevant hardware:** Reolink doorbell+chime (local AI detection), Shelly plug on garage freezer, 2 thermostats (upstairs: Nest, downstairs: Trane XL824 via Nexia cloud — the XL824 has no local-API path, see runbook), Shield/speakers/XGIMI media. Kitchen area has 0 entities (unassigned devices to fix).
 
 ---
 

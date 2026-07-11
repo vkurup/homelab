@@ -105,6 +105,20 @@ A Homepage tile is in `config/homepage/services.yaml` (group "Smart Home"). Its 
 **long-lived access token**: HA → profile → Long-lived access tokens → create → set
 `HOMEPAGE_VAR_HOMEASSISTANT_API_KEY` in Homepage's env.
 
+## Thermostats
+
+- **Upstairs:** Google Nest, via the `nest` integration ("Yellow House").
+- **Downstairs:** Trane XL824, added 2026-07-10 replacing the old downstairs Nest. Integrated via
+  the **Nexia/American Standard/Trane** cloud-polling integration (Nexia app credentials) — the
+  built-in "Trane Local" integration (mTLS, no cloud) only supports the XL1050/Platinum 1050, not
+  the XL824, so this thermostat has no local-only path. Creates two devices in HA per Nexia's
+  single-zone model: the physical thermostat and a `NativeZone` device holding the actual
+  `climate.*` entity — both assigned to the Downstairs area.
+- The old downstairs Nest device could not be removed from HA directly (cloud-synced devices don't
+  support manual removal); it was removed from the Google Home app instead, which cleared the
+  device and its entities (`climate.downstairs`, `sensor.downstairs_temperature`,
+  `sensor.downstairs_humidity`) from HA automatically on next sync.
+
 ## Known gaps
 
 - **cartman has no at-rest disk encryption.** All service creds (this repo's `.env`, etc.) and
