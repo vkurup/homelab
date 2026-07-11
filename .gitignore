@@ -2,4 +2,5 @@
 .vagrant
 *.log
 .claude/settings.local.json
+.claude/*.lock
 config/homepage/kubernetes.yaml
