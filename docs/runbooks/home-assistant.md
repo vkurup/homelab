@@ -118,5 +118,5 @@ A Homepage tile is in `config/homepage/services.yaml` (group "Smart Home"). Its 
 - [x] Deploy the Traefik + Homepage changes to cartman (restart/redeploy the stack).
 - [x] Confirm `ha.home.kurup.net` resolves (wildcard `*.home.kurup.net` DNS likely already covers it).
 - [x] Create the HA long-lived token and set `HOMEPAGE_VAR_HOMEASSISTANT_API_KEY`.
-- [ ] Restart Claude Code and confirm `/mcp` shows `home-assistant`.
+- [x] Restart Claude Code and confirm `/mcp` shows `home-assistant`.
 - [x] Rename this repo `htpc-download-box` → `homelab` (touches the live stack — do deliberately).
