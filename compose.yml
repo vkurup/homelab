@@ -159,6 +159,9 @@ services:
       - ./config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro  # version-controlled, no secrets
       - ./config/traefik/dynamic:/etc/traefik/dynamic:ro           # version-controlled, no secrets
       - ${CONFIG_ROOT}/traefik/acme.json:/acme.json                # TLS certs — not in repo
+    networks:
+      - default   # unchanged: reaches host-networked services via 192.168.1.20
+      - life103   # added: reach life103-api and ntfy by container name
 
   homepage:
     container_name: homepage
@@ -254,5 +257,77 @@ services:
     container_name: grampsweb_redis
     restart: always
 
+  # life103 — family location app. Custom API image built + published from the life103
+  # repo (ghcr.io/vkurup/life103-backend); Postgres and ntfy are stock images. All three
+  # sit on an internal `life103` network with no host ports: the only way in is through
+  # Traefik's TLS (see config/traefik/dynamic/services.yml), and Postgres is unreachable
+  # from outside the network entirely.
+  life103-db:
+    container_name: life103-db
+    image: postgis/postgis:17-3.5
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: life103
+      POSTGRES_USER: life103
+      POSTGRES_PASSWORD: ${LIFE103_DB_PASSWORD}
+    volumes:
+      - ${CONFIG_ROOT}/life103-db:/var/lib/postgresql/data  # in the backup sweep
+    networks:
+      - life103
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U life103 -d life103"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  life103-api:
+    container_name: life103-api
+    image: ghcr.io/vkurup/life103-backend:latest
+    restart: unless-stopped
+    depends_on:
+      life103-db:
+        condition: service_healthy
+    environment:
+      LIFE103_DB_HOST: life103-db
+      LIFE103_DB_PORT: "5432"
+      LIFE103_DB_NAME: life103
+      LIFE103_DB_USER: life103
+      LIFE103_DB_PASSWORD: ${LIFE103_DB_PASSWORD}
+      LOG_LEVEL: ${LIFE103_LOG_LEVEL:-INFO}  # flip to DEBUG + `up -d`, no rebuild
+    networks:
+      - life103
+    # This is your app to debug, so keep more history than the media services would need.
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  ntfy:
+    container_name: ntfy
+    image: binwiederhier/ntfy:latest
+    command: serve
+    restart: unless-stopped
+    user: "${PUID}:${PGID}"  # plain Go binary; honours PUID/PGID unlike the postgis image
+    environment:
+      NTFY_BASE_URL: https://ntfy.home.kurup.net
+      NTFY_BEHIND_PROXY: "true"
+      # Port 8080, not ntfy's default 80: this container runs as PUID, and a non-root
+      # process cannot bind a port below 1024. Traefik points at 8080 to match.
+      NTFY_LISTEN_HTTP: ":8080"
+      NTFY_CACHE_FILE: /var/lib/ntfy/cache.db
+      NTFY_ATTACHMENT_CACHE_DIR: /var/lib/ntfy/attachments
+      TZ: ${TZ}
+    volumes:
+      - ${CONFIG_ROOT}/ntfy:/var/lib/ntfy
+    networks:
+      - life103
+
 volumes:
   scrutiny-influxdb:
+
+networks:
+  # Internal to the three life103 containers. Traefik joins it (see below) to route by
+  # container name; nothing here is published to a host port.
+  life103:
+    driver: bridge

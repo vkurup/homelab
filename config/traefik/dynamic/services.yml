@@ -110,6 +110,22 @@ http:
       tls:
         certResolver: cloudflare
 
+    # life103 — family location app. Routed by container name over the internal life103
+    # network (Traefik joins it in compose.yml); no host port is published.
+    life103:
+      rule: "Host(`life103.home.kurup.net`)"
+      entryPoints: [websecure]
+      service: life103
+      tls:
+        certResolver: cloudflare
+
+    ntfy:
+      rule: "Host(`ntfy.home.kurup.net`)"
+      entryPoints: [websecure]
+      service: ntfy
+      tls:
+        certResolver: cloudflare
+
   services:
     jellyfin:
       loadBalancer:
@@ -175,3 +191,15 @@ http:
       loadBalancer:
         servers:
           - url: "http://192.168.1.248:8123"
+
+    # By container name, not host IP: these live on the internal life103 network with no
+    # published ports, reachable only because Traefik joined that network.
+    life103:
+      loadBalancer:
+        servers:
+          - url: "http://life103-api:3000"
+
+    ntfy:
+      loadBalancer:
+        servers:
+          - url: "http://ntfy:8080"
