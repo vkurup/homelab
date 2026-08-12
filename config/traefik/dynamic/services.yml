@@ -126,6 +126,14 @@ http:
       tls:
         certResolver: cloudflare
 
+    # Signed APKs for Obtainium (8.2). Same internal network, same TLS, no host port.
+    life103-apk:
+      rule: "Host(`apk.home.kurup.net`)"
+      entryPoints: [websecure]
+      service: life103-apk
+      tls:
+        certResolver: cloudflare
+
   services:
     jellyfin:
       loadBalancer:
@@ -203,3 +211,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://ntfy:8080"
+
+    life103-apk:
+      loadBalancer:
+        servers:
+          - url: "http://life103-apk:80"
