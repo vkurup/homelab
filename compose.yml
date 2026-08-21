@@ -39,6 +39,11 @@ services:
     container_name: prowlarr
     image: linuxserver/prowlarr:nightly
     restart: unless-stopped
+    labels:
+      # The nightly tag changes almost daily and there is no decision attached to it,
+      # so watching it would be pure noise. Prowlarr reports its own updates in its
+      # health page anyway.
+      diun.enable: "false"
     ports:
       - "9696:9696"
     environment:
@@ -201,6 +206,9 @@ services:
     container_name: scrutiny
     image: ghcr.io/analogj/scrutiny:master-omnibus
     restart: unless-stopped
+    labels:
+      # master-omnibus is a rolling build tag, same reasoning as prowlarr above.
+      diun.enable: "false"
     privileged: true
     ports:
       - "8085:8080"
@@ -217,6 +225,41 @@ services:
       - /dev/sdd:/dev/sdd
       - /dev/sde:/dev/sde
       - /dev/sdf:/dev/sdf
+
+  # https://crazymax.dev/diun/ -- notifies when a watched image has a newer digest.
+  # Chosen over Watchtower (which WS10 originally named): containrrr/watchtower was
+  # archived 2025-12-17 and last released Nov 2023, which is a poor basis for tracking
+  # security patches. diun is notify-only by design -- it has no capability to restart
+  # or update a container, so "notify-only" cannot silently drift into auto-updating.
+  diun:
+    container_name: diun
+    image: crazymax/diun:latest
+    restart: unless-stopped
+    command: serve
+    environment:
+      TZ: ${TZ}
+      LOG_LEVEL: info
+      # Once a day is enough; these are patches to review, not incidents.
+      DIUN_WATCH_SCHEDULE: "0 8 * * *"
+      # Without this the first run notifies once for every image it discovers.
+      DIUN_WATCH_FIRSTCHECKNOTIF: "false"
+      DIUN_PROVIDERS_DOCKER: "true"
+      # Watch everything by default and opt individual containers out with a
+      # diun.enable=false label, rather than labelling all ~20 services to opt in.
+      DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT: "true"
+      # Reached by container name on the life103 network, the same way Traefik reaches
+      # it -- no dependency on DNS or on Traefik being up to deliver an update notice.
+      DIUN_NOTIF_NTFY_ENDPOINT: http://ntfy:8080
+      # A separate topic from the uptime alerts on purpose: an image update is
+      # informational and should be muteable without silencing outage alerts.
+      DIUN_NOTIF_NTFY_TOPIC: homelab-updates
+      DIUN_NOTIF_NTFY_PRIORITY: "2"
+    volumes:
+      - ${CONFIG_ROOT}/diun:/data
+      # Read-only: diun only needs to enumerate containers and read their image refs.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - life103
 
   # https://www.grampsweb.org/install_setup/deployment/
   grampsweb: &grampsweb

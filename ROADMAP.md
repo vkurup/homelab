@@ -188,16 +188,34 @@ CPU, memory, disk I/O, and network visibility for cartman.
 
 ---
 
-## WS10: Automatic Container Updates (Watchtower)
+## WS10: Container Update Notifications (diun) ✓
 
-Keep containers up to date with security patches without manual intervention.
+Know when a watched image has a newer digest, so security patches get applied deliberately
+rather than discovered by accident.
 
-**Watchtower** monitors running containers and pulls updated images automatically. Can be configured to notify-only (recommended to start) rather than auto-update, so you control when updates are applied.
+**Not Watchtower.** `containrrr/watchtower` was archived on 2025-12-17 and last released in
+Nov 2023 — a poor basis for tracking security patches. Replaced with
+[diun](https://crazymax.dev/diun/), actively maintained (v4.33.0, May 2026) and **notify-only
+by design**: it has no ability to restart or update a container, so the chosen mode cannot
+silently drift into auto-updating the way a misconfigured Watchtower could.
 
-**Suggested tasks:**
-- [ ] Decide: notify-only vs auto-update (notify-only recommended — review updates before applying)
-- [ ] Add `watchtower` service to compose.yml scoped to specific containers (exclude grampsweb, calibre-web to avoid breaking changes)
-- [ ] Configure notification channel (email or other)
+- [x] Decide: notify-only vs auto-update — notify-only, enforced by the tool's own design
+- [x] Add the service to compose.yml
+- [x] Configure notification channel — ntfy, topic `homelab-updates`, reached by container
+      name on the life103 network (no dependency on DNS or Traefik to deliver a notice)
+
+Deliberately a **separate ntfy topic** from the WS8 uptime alerts: an image update is
+informational and should be muteable without silencing outage alerts.
+
+Watches everything by default; containers opt out with a `diun.enable=false` label. Currently
+opted out: `prowlarr` (`nightly`) and `scrutiny` (`master-omnibus`) — rolling tags that change
+constantly with no decision attached, and the *arr apps report their own updates anyway.
+
+The original plan excluded grampsweb and calibre-web "to avoid breaking changes". That
+reasoning applied to auto-updating; with notify-only there is nothing to break, so they are
+watched — knowing an update exists is the point.
+
+**Subscribe to the `homelab-updates` topic** in the ntfy app to actually receive these.
 
 ---
 
