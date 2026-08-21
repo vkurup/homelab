@@ -116,6 +116,28 @@ Health and performance visibility for the stack.
 
 System metrics (CPU, memory, disk I/O) deferred to WS11.
 
+**Alerting (added 2026-08-20):** Uptime Kuma pushes to ntfy (`https://ntfy.home.kurup.net`,
+topic `homelab`), attached to all 12 monitors. Verified end-to-end.
+
+**Known gap: cartman is its own watchman.** Uptime Kuma and ntfy both run *on* cartman, so
+the one outage this setup structurally cannot report is cartman itself going down — the
+monitor and the notifier die with the thing they watch. Everything else is covered.
+
+- [ ] Add an external dead man's switch so cartman's own death is reported. Something
+      off-box expects a periodic ping and alerts when it stops arriving (inverted
+      monitoring: silence is the alarm, so it survives cartman being unreachable).
+- [ ] Decide where it lives — a hosted service (healthchecks.io, Better Stack) is the
+      simplest and needs no second machine; self-hosting it on brookfield keeps it local
+      but a laptop is often asleep or off the LAN, which makes it a poor watchman.
+- [ ] Whatever pings it must be independent of the stack being healthy (a plain host cron
+      on cartman, not a container), or a wedged-but-running Docker could keep the switch
+      alive while services are down.
+
+**Related tuning:** ntfy notification priority is currently 5 (ntfy's max — bypasses Do Not
+Disturb) on every monitor, so any brief flap alerts urgently at 3am. Consider dropping to 4.
+Also note ntfy has no auth configured, so anyone on the LAN can publish to or read the
+`homelab` topic.
+
 ---
 
 ## WS9: Media Requests (Jellyseerr)
