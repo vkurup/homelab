@@ -133,6 +133,10 @@ monitor and the notifier die with the thing they watch. Everything else is cover
       on cartman, not a container), or a wedged-but-running Docker could keep the switch
       alive while services are down.
 
+Planned here because WS8 is where monitoring lives, but it **implements in the homebook
+repo** — the ping is a host cron, not a container, so it belongs to Ansible (same split as
+the Home Assistant backup, see `docs/runbooks/home-assistant.md`).
+
 **Related tuning:** ntfy notification priority is currently 5 (ntfy's max — bypasses Do Not
 Disturb) on every monitor, so any brief flap alerts urgently at 3am. Consider dropping to 4.
 Also note ntfy has no auth configured, so anyone on the LAN can publish to or read the
