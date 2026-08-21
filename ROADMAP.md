@@ -61,12 +61,28 @@ Config is small (MBs) and changes infrequently — easy to back up. Media is lar
 - **rsync to NAS or another machine** — good if you have local storage elsewhere
 - **`make backup` target** — rsync `$CONFIG_ROOT` from cartman to laptop on demand
 
-**Suggested tasks:**
-- [x] Determine where `/mnt/storage` lives on cartman — local ZFS pool
-- [ ] Set up automatic ZFS snapshots via cron (first line of defense, free — protects against accidental deletion/corruption)
-- [ ] Decide on offsite backup destination (cloud vs. local — still needed for hardware failure/theft)
-- [ ] Add `bin/backup.sh` + `make backup` target (mirrors `$CONFIG_ROOT` off cartman)
-- [ ] Schedule backup via cron on cartman or as a periodic manual step
+**Status (audited 2026-08-21): done, by duplicacy in the homebook repo rather than by
+anything in this one.** The options above were written before that coverage existed.
+
+- [x] Determine where `/mnt/storage` lives on cartman — local ZFS pool (`vkstoragepool`)
+- [x] Set up automatic ZFS snapshots via cron — `zfs-auto-snapshot` on
+      `vkstoragepool/config` (frequent/hourly/daily/weekly/monthly). Media (`data`) is
+      deliberately excluded: 1.85T on a 3.62T pool, and snapshots would pin every torrent
+      the *arr stack deletes after seeding. See homebook `docs/runbooks/zfs-snapshots.md`.
+- [x] Decide on offsite backup destination — Backblaze B2, daily `duplicacy copy`
+- [x] Schedule backup — duplicacy runs hourly from root's crontab on cartman
+- [x] ~~Add `bin/backup.sh` + `make backup`~~ — **not needed.** duplicacy already backs up
+      `$CONFIG_ROOT`: `files/duplicacy-filters` in homebook explicitly includes
+      `mnt/storage/config/*` (Jellyfin's re-downloadable metadata excluded, its library DB
+      with watch history kept). A second mechanism would duplicate that and drift from it.
+
+Two layers, covering different failures: **ZFS snapshots** are the fast local undo for an
+accidental delete or bad config change, and are useless for disk or host loss because they
+sit on the same pool. **duplicacy → B2** is the offsite copy for hardware failure or theft.
+
+Monitoring for both: a daily staleness check mails if any client stops backing up, and a
+dead man's switch reports cartman itself dying (WS8). See homebook
+`docs/runbooks/duplicacy-backup.md`.
 
 ---
 
