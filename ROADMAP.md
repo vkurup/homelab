@@ -174,17 +174,32 @@ Let family request movies and TV shows without needing access to Radarr/Sonarr d
 
 ---
 
-## WS11: System Metrics
+## WS11: System Metrics (Netdata) ✓
 
-CPU, memory, disk I/O, and network visibility for cartman.
+CPU, memory, disk I/O, and network visibility for cartman, plus per-container metrics.
 
-**Options:**
-- **Netdata** — simple, self-contained, minimal config; built-in dashboards
-- **Grafana + Prometheus** — more powerful, more complex; better for long-term retention and custom dashboards
+- [x] Decide: Netdata vs Grafana stack — **Netdata**. One container against a Grafana +
+      Prometheus + exporters stack, for a single host, with useful dashboards out of the
+      box. Grafana's advantages (long retention, custom dashboards, multi-host) are things
+      this setup does not currently need.
+- [x] Add to compose.yml, Traefik (`netdata.home.kurup.net`) and the Homepage dashboard
 
-**Suggested tasks:**
-- [ ] Decide: Netdata vs Grafana stack
-- [ ] Add chosen service(s) to compose.yml and Homepage dashboard
+**Local only.** `DO_NOT_TRACK=1` disables anonymous telemetry and the agent is not claimed
+into Netdata Cloud, so metrics never leave the house.
+
+**Storage is under `MEDIA_ROOT`, not `CONFIG_ROOT`, on purpose.** `CONFIG_ROOT` is
+ZFS-snapshotted hourly (WS5) and backed up to B2 by duplicacy. A time-series database
+rewrites itself continuously, so putting it there would bloat every snapshot and push metric
+churn into the offsite backup. The `data` dataset has `auto-snapshot=false` and is outside
+duplicacy's include filters.
+
+Disk use is bounded by netdata's own defaults — 1GiB per tier across 3 tiers, ~3GiB total —
+so no custom `netdata.conf` is needed.
+
+**Possible follow-up:** netdata has its own health alarms (disk filling, CPU saturation,
+RAM pressure). They are not wired to ntfy yet. Uptime Kuma covers up/down and
+`disk-space-check` covers filesystems, so the gap is resource *trends* rather than outages.
+Worth doing only if the noise proves worth it — netdata's default alarm set is chatty.
 
 ---
 

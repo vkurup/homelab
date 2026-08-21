@@ -94,3 +94,7 @@
         href: https://scrutiny.home.kurup.net
         description: Disk health (S.M.A.R.T.)
         icon: scrutiny.png
+    - Netdata:
+        href: https://netdata.home.kurup.net
+        description: System metrics (CPU, memory, disk, network)
+        icon: netdata.png

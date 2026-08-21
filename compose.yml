@@ -226,6 +226,49 @@ services:
       - /dev/sde:/dev/sde
       - /dev/sdf:/dev/sdf
 
+  # https://learn.netdata.cloud/ -- per-second system metrics (CPU, memory, disk I/O,
+  # network) for cartman, plus per-container metrics via the docker socket.
+  #
+  # Storage lives under MEDIA_ROOT, deliberately NOT under CONFIG_ROOT. CONFIG_ROOT is
+  # ZFS-snapshotted hourly and backed up to B2 by duplicacy; a time-series database
+  # rewrites itself continuously, so putting it there would bloat every snapshot and
+  # push metric churn into the offsite backup, where it has no business being. The data
+  # dataset has auto-snapshot=false and is excluded from duplicacy's filters.
+  #
+  # Disk use is bounded by netdata's own defaults: 1GiB per tier x 3 tiers, ~3GiB total.
+  netdata:
+    container_name: netdata
+    image: netdata/netdata:stable
+    restart: unless-stopped
+    # pid+network host: netdata reads host processes and interfaces directly. Without
+    # pid: host it reports the container's own namespace and the process charts are empty.
+    pid: host
+    network_mode: host
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    environment:
+      - TZ=${TZ}
+      # No anonymous telemetry, and the agent stays standalone -- it is not claimed into
+      # Netdata Cloud, so metrics never leave the house.
+      - DO_NOT_TRACK=1
+    volumes:
+      - ${MEDIA_ROOT}/netdata/config:/etc/netdata
+      - ${MEDIA_ROOT}/netdata/lib:/var/lib/netdata
+      - ${MEDIA_ROOT}/netdata/cache:/var/cache/netdata
+      # Read-only views of the host that netdata needs to report on it.
+      - /:/host/root:ro,rslave
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /var/log:/host/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
   # https://crazymax.dev/diun/ -- notifies when a watched image has a newer digest.
   # Chosen over Watchtower (which WS10 originally named): containrrr/watchtower was
   # archived 2025-12-17 and last released Nov 2023, which is a poor basis for tracking

@@ -94,6 +94,13 @@ http:
       tls:
         certResolver: cloudflare
 
+    netdata:
+      rule: "Host(`netdata.home.kurup.net`)"
+      entryPoints: [websecure]
+      service: netdata
+      tls:
+        certResolver: cloudflare
+
     traefik:
       rule: "Host(`traefik.home.kurup.net`)"
       entryPoints: [websecure]
@@ -194,6 +201,11 @@ http:
       loadBalancer:
         servers:
           - url: "http://192.168.1.20:8085"
+
+    netdata:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.20:19999"
 
     homeassistant:
       loadBalancer:
