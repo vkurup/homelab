@@ -137,10 +137,9 @@ Planned here because WS8 is where monitoring lives, but it **implements in the h
 repo** — the ping is a host cron, not a container, so it belongs to Ansible (same split as
 the Home Assistant backup, see `docs/runbooks/home-assistant.md`).
 
-**Related tuning:** ntfy notification priority is currently 5 (ntfy's max — bypasses Do Not
-Disturb) on every monitor, so any brief flap alerts urgently at 3am. Consider dropping to 4.
-Also note ntfy has no auth configured, so anyone on the LAN can publish to or read the
-`homelab` topic.
+**Related tuning:** ntfy notification priority was dropped from 5 (ntfy's max, which bypasses
+Do Not Disturb and made every brief flap an urgent 3am alert) to 4 on 2026-08-20. Note that
+ntfy has no auth configured, so anyone on the LAN can publish to or read the `homelab` topic.
 
 ---
 
