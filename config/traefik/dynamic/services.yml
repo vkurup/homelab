@@ -98,11 +98,6 @@ http:
       rule: "Host(`netdata.home.kurup.net`)"
       entryPoints: [websecure]
       service: netdata
-      # netdata's agent dashboard has no authentication of its own, and it exposes the
-      # host in detail: process list, network connections, systemd units, disk layout,
-      # per-container metrics. Reusing the dashboard-auth credential rather than leaving
-      # it open to anything already on the LAN or tailnet.
-      middlewares: [dashboard-auth]
       tls:
         certResolver: cloudflare
 
