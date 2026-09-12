@@ -44,10 +44,12 @@ upgrades, leaving fifteen suspects if something breaks and applying no cooldown 
 them. Pinning to the running version makes the commit a no-op at runtime. Dependabot then
 proposes the catch-up bumps one group at a time, each cooled down and each with a changelog.
 
-**14-day cooldown, 30 for major**
+**14-day cooldown, flat**
 Two weeks is long enough for a compromised or badly broken release to surface publicly, and
-being two weeks behind costs nothing on homelab media services. Major bumps get 30 days since
-they carry breaking-change risk on top. A genuine CVE is handled by bypassing manually, which
+being two weeks behind costs nothing on homelab media services. A longer wait for major bumps
+was intended but is not available: Dependabot rejects `semver-major-days` for
+`docker-compose`, which it does not classify as a SemVer-aware ecosystem, so the cooldown is
+flat at 14 days. A genuine CVE is handled by bypassing manually, which
 is a deliberate act rather than the default path.
 
 **Weekly, grouped by role, PR limit 5**
@@ -97,6 +99,9 @@ that never moves without a pull request. Packaging rebuilds do.
 
 ## Risks / Trade-offs
 
+- **Major bumps get no extra wait.** Dependabot's per-semver-level cooldown is unavailable for
+  docker-compose, so a major version arrives on the same 14 days as a patch. Mitigation: major
+  bumps are visible as such in the PR title and can simply be left unmerged.
 - **A security fix waits 14 days.** Mitigation: bypass the cooldown manually for a known CVE.
   These services are LAN and Tailscale only, never internet-facing, which lowers the stakes.
 - **Grouped PRs mix changelogs.** Mitigation: the group is small and role-scoped; split a

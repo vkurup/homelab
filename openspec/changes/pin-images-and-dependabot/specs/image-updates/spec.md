@@ -52,7 +52,7 @@ change and linking the upstream release notes. No update SHALL be applied automa
 
 ### Requirement: New releases are subject to a cooldown
 A newly published release SHALL NOT be proposed until it has been available for at least 14
-days, or 30 days for a major version bump.
+days, regardless of whether it is a major, minor or patch bump.
 
 #### Scenario: Release published today
 - **WHEN** an image publishes a new minor version

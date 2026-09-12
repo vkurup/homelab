@@ -18,9 +18,12 @@ updates:
     # The reason this change exists. A release sits long enough for a compromised or
     # badly broken build to be caught and pulled before it is ever proposed here.
     # https://blog.yossarian.net/2025/11/21/We-should-all-be-using-dependency-cooldowns
+    #
+    # Only default-days here: Dependabot rejects the per-semver-level keys for
+    # docker-compose, which it does not treat as a SemVer-aware ecosystem, so major
+    # bumps get the same 14 days as everything else rather than a longer wait.
     cooldown:
       default-days: 14
-      semver-major-days: 30
     groups:
       arr-apps:
         patterns:

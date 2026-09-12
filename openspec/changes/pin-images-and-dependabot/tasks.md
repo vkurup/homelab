@@ -65,7 +65,11 @@ database schema that stable cannot read. Take a Prowlarr config backup first.
 
 - [x] 4.1 Create `.github/dependabot.yml`: `docker-compose` ecosystem, directory `/`,
       `schedule: weekly`, `open-pull-requests-limit: 5`
-- [x] 4.2 Add `cooldown`: 14 days default, 30 days for major
+- [x] 4.2 Add `cooldown`: 14 days default. The 30-day major wait is **not possible** —
+      Dependabot rejects `semver-major-days` for `docker-compose`, which it does not treat
+      as a SemVer-aware ecosystem: "The property '#/updates/0/cooldown/semver-major-days'
+      is not supported for the package ecosystem 'docker-compose'." Major bumps get the
+      same 14 days as everything else.
 - [x] 4.3 Add `groups`: arr apps (`sonarr`, `radarr`, `bazarr`, `prowlarr`), download clients
       (`deluge`, `sabnzbd`, `gluetun`), infrastructure (everything else)
 - [x] 4.4 Decide on `life103-db` (`postgis/postgis:17-3.5`). It is already pinned, so
