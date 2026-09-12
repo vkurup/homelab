@@ -77,12 +77,16 @@ database schema that stable cannot read. Take a Prowlarr config backup first.
 
 ## 5. Remove diun
 
-- [ ] 5.1 Delete the `diun` service block from `compose.yml`
-- [ ] 5.2 Remove the `diun.enable: "false"` labels from `prowlarr` and `scrutiny`
-- [ ] 5.3 `make deploy`, then confirm the container is gone (`docker ps -a | grep diun`)
+- [x] 5.1 Delete the `diun` service block from `compose.yml`
+- [x] 5.2 Remove the `diun.enable: "false"` labels from `prowlarr` and `scrutiny`
+- [x] 5.3 `make deploy`, then confirm the container is gone (`docker ps -a | grep diun`).
+      Note: `docker compose up -d` does **not** remove a service deleted from compose.yml,
+      and `bin/deploy.sh` passes no `--remove-orphans`, so diun kept running after the
+      deploy and had to be removed with `docker rm -f diun`. Any future service removal
+      needs the same manual step.
 - [ ] 5.4 Remove `$CONFIG_ROOT/diun/` on cartman
-- [ ] 5.5 Drop the diun row from the service table in `README.md`
-- [ ] 5.6 Mark WS10 superseded in `ROADMAP.md`, pointing at this change; record `scrutiny` and
+- [x] 5.5 Drop the diun row from the service table in `README.md`
+- [x] 5.6 Mark WS10 superseded in `ROADMAP.md`, pointing at this change; record `scrutiny` and
       `life103-backend` as knowingly untracked
 - [ ] 5.7 Unsubscribe from the `homelab-updates` ntfy topic on the phone (the `homelab` topic
       stays — Uptime Kuma still uses it)
