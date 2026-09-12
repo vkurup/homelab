@@ -148,7 +148,7 @@ services:
 
   traefik:
     container_name: traefik
-    image: traefik:v3.3.7
+    image: traefik:v3.7.13
     restart: unless-stopped
     ports:
       - "80:80"
@@ -165,7 +165,7 @@ services:
 
   homepage:
     container_name: homepage
-    image: ghcr.io/gethomepage/homepage:v2.1.2
+    image: ghcr.io/gethomepage/homepage:v2.3.0
     restart: unless-stopped
     network_mode: host
     environment:
