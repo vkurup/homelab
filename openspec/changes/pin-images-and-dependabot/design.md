@@ -69,6 +69,19 @@ cooldown is meant to guard against. The catch found during inventory: nightly `2
 *ahead* of stable `2.5.2`, so this is a version downgrade, not a channel swap at parity.
 Separate commit, config backed up first, revert to nightly if stable will not read the config.
 
+**Pin by digest where `latest` leads the version tags**
+Discovered the hard way during the first deploy. For `gluetun` and `grampsweb`, `latest` is
+not an alias for the newest release tag — it is built from a newer commit, so it runs *ahead*
+of every published version. That is why their running digests matched no version tag. Pinning
+them to the newest version tag was therefore a downgrade, and both broke: gluetun lost the VPN
+entirely, and grampsweb could not run its own migrations backwards. For images like these the
+correct pin is the digest, written as `tag@sha256:...`. It records exactly what runs without
+depending on the publisher tagging sanely, and Dependabot can still bump a digest.
+
+The general lesson: a running digest that matches no version tag is a signal that `latest`
+leads the releases, not that the version is merely unknown. Do not resolve it by guessing
+forward.
+
 ## Risks / Trade-offs
 
 - **A security fix waits 14 days.** Mitigation: bypass the cooldown manually for a known CVE.
@@ -81,10 +94,9 @@ Separate commit, config backed up first, revert to nightly if stable will not re
 - **Moving Prowlarr to stable is a downgrade.** It runs nightly `2.6.2.5583`; newest stable is
   `2.5.2`. A downgrade can hit a config or database schema stable cannot read. Mitigation:
   back up `$CONFIG_ROOT/prowlarr/` first, and be willing to revert to nightly.
-- **Two images have no resolvable running version.** `gluetun` and `grampsweb` carry no useful
-  version label, and their running `latest` digests match no published version tag, meaning
-  `latest` is built separately from the release tags. Pinning them is therefore an upgrade,
-  not a recording, and needs its own verification.
+- **Resolved: gluetun and grampsweb are pinned by digest.** Their `latest` leads the version
+  tags, so they have no version tag that describes what runs. Trade-off: a digest pin carries
+  no human-readable version, and Dependabot digest bumps say less than a version bump.
 - **Dependabot parsing of LinuxServer tags is unverified in practice.** Mitigation: the first
   week's PRs are the test. If it mis-parses, migrate that image to Renovate.
 

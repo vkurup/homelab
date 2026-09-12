@@ -1,10 +1,12 @@
 ## ADDED Requirements
 
 ### Requirement: Image versions are recorded in git
-Every service in `compose.yml` SHALL name the most specific image version tag the publisher
-offers, such that no update can take effect without a tag change in this repository. A tag
-that floats across releases, such as a bare major or minor, does not satisfy this. Images
-where the publisher offers nothing more specific SHALL be listed as known gaps in `ROADMAP.md`.
+Every service in `compose.yml` SHALL name the most specific image reference the publisher
+offers, such that no update can take effect without a change in this repository. A tag that
+floats across releases, such as a bare major or minor, does not satisfy this. Where a
+publisher's `latest` leads its version tags, so that no version tag describes the running
+build, the reference SHALL be a digest (`tag@sha256:...`). Images where the publisher offers
+nothing specific enough SHALL be listed as known gaps in `ROADMAP.md`.
 
 #### Scenario: Reading the running version from the repo
 - **WHEN** a developer reads `compose.yml`
@@ -13,6 +15,12 @@ where the publisher offers nothing more specific SHALL be listed as known gaps i
 #### Scenario: Publisher offers no version tag
 - **WHEN** an image publishes only a rolling tag such as `master-omnibus`
 - **THEN** it remains on that tag and is recorded in `ROADMAP.md` as untracked
+
+#### Scenario: Publisher's latest leads its version tags
+- **WHEN** the running image's digest matches no published version tag, because `latest` is
+  built from a newer commit than the newest release
+- **THEN** the image is pinned by digest, and is never resolved by guessing forward to the
+  newest version tag, which would be a downgrade
 
 #### Scenario: Publisher offers only a floating version tag
 - **WHEN** an image publishes a version tag that still moves, such as `17-3.5` tracking

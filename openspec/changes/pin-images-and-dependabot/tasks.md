@@ -15,8 +15,8 @@ Note: `ssh cartman` goes over Tailscale and hangs on a browser check. Use the LA
 | homepage | `:latest` | v2.1.2 | `v2.1.2` |
 | netdata | `:stable` | 2.11.0 | `v2.11.0` |
 | ntfy | `:latest` | digest matches `v2.28.0` | `v2.28.0` |
-| gluetun | (none) | unresolvable | `v3.41.3` (upgrade) |
-| grampsweb | `:latest` | unresolvable | `v25.6.0` (upgrade) |
+| gluetun | (none) | unresolvable | `latest@sha256:e8be55ff` |
+| grampsweb | `:latest` | unresolvable | `latest@sha256:496a97ad` |
 | traefik | `:v3.3` | v3.3.7 | `v3.3.7` |
 | uptime-kuma | `:1` | 1.23.17 | `1.23.17` |
 | postgis | `:17-3.5` | PG 17.5 | leave, no patch tag published |
@@ -36,9 +36,16 @@ Note: `ssh cartman` goes over Tailscale and hangs on a browser check. Use the LA
 - [x] 2.2 Leave `scrutiny`, `postgis` and the whole life103 stack on their current tags
 - [x] 2.2b Pin `traefik` and `uptime-kuma`, which named version tags but still floated on
       patch and minor respectively — `uptime-kuma:1` accepted any 1.x release without a PR
-- [ ] 2.3 `make deploy` and confirm every container comes back up with no image actually
-      changing (`docker compose pull` should report nothing new)
-- [ ] 2.4 Commit on its own — this commit must be a runtime no-op
+- [x] 2.3 Commit and push (must precede deploy: `bin/deploy.sh` pulls on cartman)
+- [x] 2.4 `make deploy` and confirm every container comes back up
+- [x] 2.5 Fix fallout: gluetun and grampsweb both broke, because for both images `latest`
+      leads the newest version tag rather than aliasing it, so "pin forward to newest
+      release" was a downgrade. Gluetun v3.41.3 (6 weeks older than the running build) could
+      not reach any PureVPN server, taking deluge and sabnzbd down with it. Grampsweb v25.6.0
+      (15 months older) crash-looped on `alembic upgrade head` because the running build had
+      already stamped revision `6d8f3cb50b71`. Both repinned by digest and redeployed.
+- [x] 2.6 Verify: all 22 containers up, zero restart counts, gluetun healthy with a VPN exit
+      IP, gramps/sonarr/radarr/bazarr/jellyfin/deluge/sabnzbd all answering HTTP 200
 
 ## 3. Prowlarr: nightly to stable (separate, behaviour change)
 
