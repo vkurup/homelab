@@ -1,0 +1,53 @@
+# Image updates arrive here as pull requests, not as push notifications. See
+# openspec/changes/pin-images-and-dependabot/ for why.
+#
+# Scope note: a tag like `linuxserver/sonarr:4.0.19` still floats across LinuxServer's
+# `-lsNNN` packaging rebuilds. That is deliberate — those carry base-image security
+# patches, not application changes. What cannot move without a PR is the upstream
+# application version named in compose.yml.
+version: 2
+updates:
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+      day: sunday
+    # Low cap on purpose: the whole point of this setup is that updates queue up
+    # quietly rather than arriving as a stream demanding attention.
+    open-pull-requests-limit: 5
+    # The reason this change exists. A release sits long enough for a compromised or
+    # badly broken build to be caught and pulled before it is ever proposed here.
+    # https://blog.yossarian.net/2025/11/21/We-should-all-be-using-dependency-cooldowns
+    cooldown:
+      default-days: 14
+      semver-major-days: 30
+    groups:
+      arr-apps:
+        patterns:
+          - "*sonarr*"
+          - "*radarr*"
+          - "*bazarr*"
+          - "*prowlarr*"
+      download-clients:
+        patterns:
+          - "*gluetun*"
+          - "*deluge*"
+          - "*sabnzbd*"
+      infrastructure:
+        patterns:
+          - "*traefik*"
+          - "*homepage*"
+          - "*uptime-kuma*"
+          - "*netdata*"
+          - "*ntfy*"
+      media-and-library:
+        patterns:
+          - "*jellyfin*"
+          - "*calibre-web*"
+          - "*grampsweb*"
+          - "*redis*"
+    ignore:
+      # life103 is an internal single-user app; it is not version-managed here.
+      - dependency-name: "ghcr.io/vkurup/life103-backend"
+      - dependency-name: "postgis/postgis"
+      - dependency-name: "nginx"

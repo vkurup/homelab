@@ -63,12 +63,12 @@ database schema that stable cannot read. Take a Prowlarr config backup first.
 
 ## 4. Dependabot
 
-- [ ] 4.1 Create `.github/dependabot.yml`: `docker-compose` ecosystem, directory `/`,
+- [x] 4.1 Create `.github/dependabot.yml`: `docker-compose` ecosystem, directory `/`,
       `schedule: weekly`, `open-pull-requests-limit: 5`
-- [ ] 4.2 Add `cooldown`: 14 days default, 30 days for major
-- [ ] 4.3 Add `groups`: arr apps (`sonarr`, `radarr`, `bazarr`, `prowlarr`), download clients
+- [x] 4.2 Add `cooldown`: 14 days default, 30 days for major
+- [x] 4.3 Add `groups`: arr apps (`sonarr`, `radarr`, `bazarr`, `prowlarr`), download clients
       (`deluge`, `sabnzbd`, `gluetun`), infrastructure (everything else)
-- [ ] 4.4 Decide on `life103-db` (`postgis/postgis:17-3.5`). It is already pinned, so
+- [x] 4.4 Decide on `life103-db` (`postgis/postgis:17-3.5`). It is already pinned, so
       Dependabot will propose bumps for it unless ignored. Add an `ignore` entry to keep the
       life103 stack out of scope, or leave it in if Postgres patches are worth seeing.
 - [ ] 4.5 Commit and push; confirm Dependabot runs (repo Insights, Dependency graph,
