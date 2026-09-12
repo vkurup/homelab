@@ -21,7 +21,6 @@ Forked from [sebgl/htpc-download-box](https://github.com/sebgl/htpc-download-box
 | uptime-kuma | uptime.home.kurup.net | 3001 | Service uptime monitoring |
 | scrutiny | scrutiny.home.kurup.net | 8085 | Disk SMART health monitoring |
 | netdata | netdata.home.kurup.net | 19999 | System metrics (CPU, memory, disk, network) |
-| diun | — | — | Notifies ntfy when a container image has an update |
 | gluetun | — | — | VPN gateway (PureVPN via OpenVPN) |
 | grampsweb | grampsweb.home.kurup.net | 5000 | Genealogy app |
 

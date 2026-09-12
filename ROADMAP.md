@@ -203,34 +203,45 @@ Worth doing only if the noise proves worth it — netdata's default alarm set is
 
 ---
 
-## WS10: Container Update Notifications (diun) ✓
+## WS10: Container Update Notifications ✓ (superseded 2026-09-12)
 
-Know when a watched image has a newer digest, so security patches get applied deliberately
-rather than discovered by accident.
+Know when a watched image has an update, so security patches get applied deliberately rather
+than discovered by accident.
 
-**Not Watchtower.** `containrrr/watchtower` was archived on 2025-12-17 and last released in
-Nov 2023 — a poor basis for tracking security patches. Replaced with
-[diun](https://crazymax.dev/diun/), actively maintained (v4.33.0, May 2026) and **notify-only
-by design**: it has no ability to restart or update a container, so the chosen mode cannot
-silently drift into auto-updating the way a misconfigured Watchtower could.
+**Originally diun, now Dependabot.** diun watched every container and pushed a notification to
+the ntfy topic `homelab-updates` whenever an image digest moved. In use it failed on its own
+terms. It was noisy, firing per image per day. Its content could not be acted on: because
+almost every image rode a floating tag, there was no version to name and no changelog to read,
+only "the digest moved". And a dependency cooldown was unimplementable, since delaying a
+notification changes nothing when the pull still fetches whatever is newest.
 
-- [x] Decide: notify-only vs auto-update — notify-only, enforced by the tool's own design
-- [x] Add the service to compose.yml
-- [x] Configure notification channel — ntfy, topic `homelab-updates`, reached by container
-      name on the life103 network (no dependency on DNS or Traefik to deliver a notice)
+The root cause was the floating tags, not the notifier. Fixing the tags made the notification
+problem mostly disappear.
 
-Deliberately a **separate ntfy topic** from the WS8 uptime alerts: an image update is
-informational and should be muteable without silencing outage alerts.
+- [x] Pin image tags to the upstream application version each service runs
+- [x] Move Prowlarr off `nightly` to stable
+- [x] Add `.github/dependabot.yml` — weekly, grouped by role, 5 open PRs max, 14-day cooldown
+      (30 for major)
+- [x] Remove diun, its labels, and the `homelab-updates` ntfy topic
 
-Watches everything by default; containers opt out with a `diun.enable=false` label. Currently
-opted out: `prowlarr` (`nightly`) and `scrutiny` (`master-omnibus`) — rolling tags that change
-constantly with no decision attached, and the *arr apps report their own updates anyway.
+Updates now arrive as pull requests naming a real version change, and GitHub's own PR email is
+the notification. No push notifications for image updates. ntfy stays for Uptime Kuma alerts.
 
-The original plan excluded grampsweb and calibre-web "to avoid breaking changes". That
-reasoning applied to auto-updating; with notify-only there is nothing to break, so they are
-watched — knowing an update exists is the point.
+**Two images are knowingly not version-managed:**
+- `scrutiny` — publishes only `master-omnibus`, no version tag exists to pin
+- the life103 stack (`life103-backend`, `life103-apk`, and its postgis) — internal, single
+  user, deliberately out of scope
 
-**Subscribe to the `homelab-updates` topic** in the ntfy app to actually receive these.
+**Two are pinned by digest, not version:** `gluetun` and `grampsweb` publish a `latest` that is
+built ahead of their newest version tag, so no version tag describes what runs. Pinning them
+forward to the newest tag was a downgrade and broke both — gluetun lost the VPN entirely and
+grampsweb could not run its database migrations backwards. Digest pins record what actually
+runs.
+
+**Known gap:** a tag like `linuxserver/sonarr:4.0.19` still floats across LinuxServer's
+`-lsNNN` packaging rebuilds, which arrive with no PR and no cooldown. Accepted deliberately:
+those carry base-image security patches rather than application changes. See
+`openspec/changes/pin-images-and-dependabot/design.md`.
 
 ---
 
