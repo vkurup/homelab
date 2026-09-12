@@ -1,12 +1,17 @@
 ## ADDED Requirements
 
 ### Requirement: Image versions are recorded in git
-Every service in `compose.yml` SHALL name the most specific image reference the publisher
-offers, such that no update can take effect without a change in this repository. A tag that
-floats across releases, such as a bare major or minor, does not satisfy this. Where a
-publisher's `latest` leads its version tags, so that no version tag describes the running
-build, the reference SHALL be a digest (`tag@sha256:...`). Images where the publisher offers
-nothing specific enough SHALL be listed as known gaps in `ROADMAP.md`.
+Every service in `compose.yml` SHALL name the upstream application version it runs, such that
+no *application* upgrade can take effect without a change in this repository. A tag that
+floats across upstream releases, such as a bare major or minor, does not satisfy this.
+
+A tag MAY still float across packaging rebuilds of the same upstream version, such as
+LinuxServer's `-lsNNN` build numbers, which carry base-image security patches rather than
+application changes. These are accepted unreviewed and without cooldown.
+
+Where a publisher's `latest` leads its version tags, so that no version tag describes the
+running build, the reference SHALL be a digest (`tag@sha256:...`). Images where the publisher
+offers nothing specific enough SHALL be listed as known gaps in `ROADMAP.md`.
 
 #### Scenario: Reading the running version from the repo
 - **WHEN** a developer reads `compose.yml`
@@ -15,6 +20,11 @@ nothing specific enough SHALL be listed as known gaps in `ROADMAP.md`.
 #### Scenario: Publisher offers no version tag
 - **WHEN** an image publishes only a rolling tag such as `master-omnibus`
 - **THEN** it remains on that tag and is recorded in `ROADMAP.md` as untracked
+
+#### Scenario: Publisher rebuilds the same upstream version
+- **WHEN** LinuxServer rebuilds `4.0.19` as a new `-lsNNN` build to pick up a base-image patch
+- **THEN** the rebuild is pulled on the next deploy without a pull request, because the
+  application version named in the repo has not changed
 
 #### Scenario: Publisher's latest leads its version tags
 - **WHEN** the running image's digest matches no published version tag, because `latest` is

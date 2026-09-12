@@ -53,13 +53,13 @@ Note: `ssh cartman` goes over Tailscale and hangs on a browser check. Use the LA
 stable is `2.5.2`. Moving to stable moves the version backwards, which risks a config or
 database schema that stable cannot read. Take a Prowlarr config backup first.
 
-- [ ] 3.0 Back up `$CONFIG_ROOT/prowlarr/` on cartman before touching the tag
-- [ ] 3.1 Change `linuxserver/prowlarr:nightly` to the current stable tag (`2.5.2` at writing)
-- [ ] 3.2 `make deploy`, then verify in the Prowlarr UI that indexers still sync and a test
+- [x] 3.0 Back up `$CONFIG_ROOT/prowlarr/` on cartman before touching the tag
+- [x] 3.1 Change `linuxserver/prowlarr:nightly` to the current stable tag (`2.5.2` at writing)
+- [x] 3.2 `make deploy`, then verify in the Prowlarr UI that indexers still sync and a test
       search returns results
-- [ ] 3.3 Verify Radarr still reports indexers as available (a Prowlarr fault surfaces there,
+- [x] 3.3 Verify Radarr still reports indexers as available (a Prowlarr fault surfaces there,
       see the DNS note in `CLAUDE.md`)
-- [ ] 3.4 Commit separately so it can be reverted without touching the pins
+- [x] 3.4 Commit separately so it can be reverted without touching the pins
 
 ## 4. Dependabot
 

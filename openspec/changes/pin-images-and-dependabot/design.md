@@ -82,6 +82,19 @@ The general lesson: a running digest that matches no version tag is a signal tha
 leads the releases, not that the version is merely unknown. Do not resolve it by guessing
 forward.
 
+**Pin the application version, not the packaging build**
+A plain semver tag like `linuxserver/sonarr:4.0.19` tracks the newest LinuxServer rebuild of
+that version, so it still floats across `-lsNNN` build numbers. The first deploy moved six
+images a build forward for this reason (sonarr ls322 to ls324, radarr ls314 to ls315, bazarr
+ls361 to ls363, sabnzbd ls270 to ls271, jellyfin ls46 to ls47, calibre-web ls398 to ls400),
+all healthy.
+
+Pinning the full `4.0.19.2979-ls324` form would close that, and was considered. Rejected
+because `-lsNNN` rebuilds are base-image security patches rather than application changes, so
+taking them promptly is a benefit rather than a risk, and because that tag shape is the one
+Dependabot is least likely to parse. The line is drawn at the upstream application version:
+that never moves without a pull request. Packaging rebuilds do.
+
 ## Risks / Trade-offs
 
 - **A security fix waits 14 days.** Mitigation: bypass the cooldown manually for a known CVE.
@@ -94,6 +107,10 @@ forward.
 - **Moving Prowlarr to stable is a downgrade.** It runs nightly `2.6.2.5583`; newest stable is
   `2.5.2`. A downgrade can hit a config or database schema stable cannot read. Mitigation:
   back up `$CONFIG_ROOT/prowlarr/` first, and be willing to revert to nightly.
+- **Base-image rebuilds arrive unreviewed.** A compromised LinuxServer rebuild of a version
+  already in the repo would be pulled on the next deploy with no cooldown. Accepted: the
+  alternative is a tag shape Dependabot likely cannot parse, and it would delay security
+  patches. Revisit if a rebuild ever causes a problem.
 - **Resolved: gluetun and grampsweb are pinned by digest.** Their `latest` leads the version
   tags, so they have no version tag that describes what runs. Trade-off: a digest pin carries
   no human-readable version, and Dependabot digest bumps say less than a version bump.
