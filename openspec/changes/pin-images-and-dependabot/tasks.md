@@ -72,7 +72,7 @@ database schema that stable cannot read. Take a Prowlarr config backup first.
       Dependabot will propose bumps for it unless ignored. Add an `ignore` entry to keep the
       life103 stack out of scope, or leave it in if Postgres patches are worth seeing.
 - [x] 4.5 Commit and push
-- [ ] 4.5b **Blocker found:** GitHub reports "Dependabot version updates aren't configured
+- [x] 4.5b **Blocker found:** GitHub reports "Dependabot version updates aren't configured
       yet" despite the file being on master. Cause: this repo is a fork of
       `sebgl/htpc-download-box`, and the dependency graph is disabled by default on forks.
       Dependabot version updates require it. Confirmed: the SBOM endpoint
@@ -119,7 +119,7 @@ Nothing is lost in practice: the operation discards issues, pull requests, stars
 child forks, and this repo has zero of each. All git history is preserved.
 It is permanent and cannot be undone.
 
-- [ ] 7.1 Settings, General, Danger Zone, "Leave fork network"
-- [ ] 7.2 Confirm the dependency graph is now available
+- [x] 7.1 Settings, General, Danger Zone, "Leave fork network"
+- [x] 7.2 Confirm the dependency graph is now available
       (`gh api repos/vkurup/homelab/dependency-graph/sbom` should stop returning 404)
 - [ ] 7.3 Re-check the Dependabot tab, then continue at 4.5c
