@@ -1,6 +1,6 @@
 services:
   gluetun:
-    image: qmcgaw/gluetun:v3.41.3
+    image: qmcgaw/gluetun:latest@sha256:e8be55ffa48c903610c0da6312922af8b660e0eb77bd0826886a2e7199e916ae
     container_name: gluetun
     restart: unless-stopped
     cap_add:
