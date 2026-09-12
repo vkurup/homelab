@@ -37,12 +37,11 @@ services:
 
   prowlarr:
     container_name: prowlarr
-    image: linuxserver/prowlarr:nightly
+    image: linuxserver/prowlarr:2.5.2
     restart: unless-stopped
     labels:
-      # The nightly tag changes almost daily and there is no decision attached to it,
-      # so watching it would be pure noise. Prowlarr reports its own updates in its
-      # health page anyway.
+      # Kept only until diun is removed; Prowlarr's updates now come through
+      # Dependabot like every other pinned image.
       diun.enable: "false"
     ports:
       - "9696:9696"
