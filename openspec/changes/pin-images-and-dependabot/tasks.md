@@ -71,8 +71,16 @@ database schema that stable cannot read. Take a Prowlarr config backup first.
 - [x] 4.4 Decide on `life103-db` (`postgis/postgis:17-3.5`). It is already pinned, so
       Dependabot will propose bumps for it unless ignored. Add an `ignore` entry to keep the
       life103 stack out of scope, or leave it in if Postgres patches are worth seeing.
-- [ ] 4.5 Commit and push; confirm Dependabot runs (repo Insights, Dependency graph,
-      Dependabot tab) and reports no parse errors on `compose.yml`
+- [x] 4.5 Commit and push
+- [ ] 4.5b **Blocker found:** GitHub reports "Dependabot version updates aren't configured
+      yet" despite the file being on master. Cause: this repo is a fork of
+      `sebgl/htpc-download-box`, and the dependency graph is disabled by default on forks.
+      Dependabot version updates require it. Confirmed: the SBOM endpoint
+      (`gh api repos/vkurup/homelab/dependency-graph/sbom`) returns 404.
+      Fix: Settings, Code security, enable Dependency graph. Detaching the fork (task 7) is
+      the cleaner route since the fork relationship is now inaccurate anyway.
+- [ ] 4.5c Confirm Dependabot runs and reports no parse errors on `compose.yml`; a run can be
+      triggered by hand from Insights, Dependency graph, Dependabot
 - [ ] 4.6 Confirm GitHub email notifications for this repo are on
 
 ## 5. Remove diun
@@ -84,11 +92,11 @@ database schema that stable cannot read. Take a Prowlarr config backup first.
       and `bin/deploy.sh` passes no `--remove-orphans`, so diun kept running after the
       deploy and had to be removed with `docker rm -f diun`. Any future service removal
       needs the same manual step.
-- [ ] 5.4 Remove `$CONFIG_ROOT/diun/` on cartman
+- [x] 5.4 Remove `$CONFIG_ROOT/diun/` on cartman
 - [x] 5.5 Drop the diun row from the service table in `README.md`
 - [x] 5.6 Mark WS10 superseded in `ROADMAP.md`, pointing at this change; record `scrutiny` and
       `life103-backend` as knowingly untracked
-- [ ] 5.7 Unsubscribe from the `homelab-updates` ntfy topic on the phone (the `homelab` topic
+- [x] 5.7 Unsubscribe from the `homelab-updates` ntfy topic on the phone (the `homelab` topic
       stays — Uptime Kuma still uses it)
 
 ## 6. Verify the loop end to end
@@ -98,3 +106,20 @@ database schema that stable cannot read. Take a Prowlarr config backup first.
 - [ ] 6.3 Merge one, run `make deploy`, confirm the service comes back on the new version
 - [ ] 6.4 If Dependabot mis-parsed any LinuxServer tag, note which, and consider Renovate with
       regex versioning for that image only
+
+## 7. Detach the fork (optional, unblocks section 4)
+
+This repo is still a fork of `sebgl/htpc-download-box`, which no longer describes it: the
+stack, deploy tooling, docs and specs are all original. The fork relationship also disables
+the dependency graph, which is what blocks Dependabot.
+
+GitHub supports this self-serve: Settings, General, Danger Zone, "Leave fork network".
+Eligibility checked and met — public, 13.8 MB (limit 1 GB), zero child forks.
+Nothing is lost in practice: the operation discards issues, pull requests, stars, watchers and
+child forks, and this repo has zero of each. All git history is preserved.
+It is permanent and cannot be undone.
+
+- [ ] 7.1 Settings, General, Danger Zone, "Leave fork network"
+- [ ] 7.2 Confirm the dependency graph is now available
+      (`gh api repos/vkurup/homelab/dependency-graph/sbom` should stop returning 404)
+- [ ] 7.3 Re-check the Dependabot tab, then continue at 4.5c
