@@ -264,7 +264,7 @@ services:
   # https://www.grampsweb.org/install_setup/deployment/
   grampsweb: &grampsweb
     container_name: grampsweb
-    image: ghcr.io/gramps-project/grampsweb:latest@sha256:496a97ad6a937fe73b8fed6dbf7e5a2967ab60363c240735eb3b043ca6ba715c
+    image: ghcr.io/gramps-project/grampsweb:latest@sha256:ac4db1ba963f5d2604e6b9a34be50c5a2c37271699f5a6df93c9492ecc8870e5
     #user: "1000:1000"
     restart: unless-stopped
     environment:
@@ -296,7 +296,7 @@ services:
     command: celery -A gramps_webapi.celery worker --loglevel=INFO --concurrency=2
 
   grampsweb_redis:
-    image: docker.io/library/redis:7.2.4-alpine
+    image: docker.io/library/redis:8.10.0-alpine
     container_name: grampsweb_redis
     restart: always
 
