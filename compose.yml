@@ -165,7 +165,7 @@ services:
 
   homepage:
     container_name: homepage
-    image: ghcr.io/gethomepage/homepage:v2.1.2
+    image: ghcr.io/gethomepage/homepage:v2.4.0
     restart: unless-stopped
     network_mode: host
     environment:
@@ -191,7 +191,7 @@ services:
 
   uptime-kuma:
     container_name: uptime-kuma
-    image: louislam/uptime-kuma:1.23.17
+    image: louislam/uptime-kuma:2.5.5
     restart: unless-stopped
     network_mode: host
     volumes:
@@ -230,7 +230,7 @@ services:
   # Disk use is bounded by netdata's own defaults: 1GiB per tier x 3 tiers, ~3GiB total.
   netdata:
     container_name: netdata
-    image: netdata/netdata:v2.11.0
+    image: netdata/netdata:v2.11.1
     restart: unless-stopped
     # pid+network host: netdata reads host processes and interfaces directly. Without
     # pid: host it reports the container's own namespace and the process charts are empty.
