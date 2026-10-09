@@ -135,19 +135,21 @@ System metrics (CPU, memory, disk I/O) deferred to WS11.
 **Alerting (added 2026-08-20):** Uptime Kuma pushes to ntfy (`https://ntfy.home.kurup.net`,
 topic `homelab`), attached to all 12 monitors. Verified end-to-end.
 
-**Known gap: cartman is its own watchman.** Uptime Kuma and ntfy both run *on* cartman, so
+**Gap (closed 2026-08-21): cartman is its own watchman.** Uptime Kuma and ntfy both run *on* cartman, so
 the one outage this setup structurally cannot report is cartman itself going down — the
 monitor and the notifier die with the thing they watch. Everything else is covered.
 
-- [ ] Add an external dead man's switch so cartman's own death is reported. Something
+- [x] Add an external dead man's switch so cartman's own death is reported. Something
       off-box expects a periodic ping and alerts when it stops arriving (inverted
       monitoring: silence is the alarm, so it survives cartman being unreachable).
-- [ ] Decide where it lives — a hosted service (healthchecks.io, Better Stack) is the
-      simplest and needs no second machine; self-hosting it on brookfield keeps it local
-      but a laptop is often asleep or off the LAN, which makes it a poor watchman.
-- [ ] Whatever pings it must be independent of the stack being healthy (a plain host cron
-      on cartman, not a container), or a wedged-but-running Docker could keep the switch
-      alive while services are down.
+      Live since 2026-08-21.
+- [x] Decide where it lives — healthchecks.io (hosted, free tier, email alerts). Not
+      brookfield: a laptop is often asleep or off the LAN, which makes it a poor watchman.
+- [x] Whatever pings it must be independent of the stack being healthy — a plain host cron
+      on cartman (every 10 minutes, as vinod), not a container, so a wedged-but-running
+      Docker cannot keep the switch alive while services are down.
+
+See homebook `docs/runbooks/dead-mans-switch.md`.
 
 Planned here because WS8 is where monitoring lives, but it **implements in the homebook
 repo** — the ping is a host cron, not a container, so it belongs to Ansible (same split as
