@@ -341,3 +341,34 @@ Make cartman the safe primary home for family photos, then migrate everyone off 
 - [ ] Install the Immich app on all 5 phones (tailnet), enable auto-backup, confirm it works away from home
 - [ ] Verify B2 backup of the photo dataset with a test restore
 - [ ] Decommission: remove photo folders from syncthing, retire the Shotwell workflow, keep `~/Pictures` untouched until confident, then downgrade Google Photos storage
+
+---
+
+## WS16: Read-Later Archive (Readeck)
+
+Save articles from a phone to read later, archived on cartman so they stay readable after the
+original goes behind a paywall or disappears. Readeck stores the full page content, not just a
+link, which is why it beats Wallabag for this. It is a single binary on SQLite, so no database
+container is needed.
+
+**Suggested tasks:**
+- [ ] Add `readeck` service to compose.yml, data under `${CONFIG_ROOT}/readeck` (inside the backup sweep)
+- [ ] Add Traefik route (`readeck.home.kurup.net` or similar)
+- [ ] Add tile to Homepage
+- [ ] Set up saving from phones (share sheet / browser extension) over the tailnet
+- [ ] Create accounts for whoever wants one
+
+---
+
+## Someday / Maybe
+
+Low priority; not committed to. Promote to a workstream when one becomes interesting.
+
+- **Audiobookshelf** — audiobook + podcast server with good phone apps; would sit on the same
+  `/data` layout as Jellyfin and calibre-web. Possibly part of WS13.
+- **Frigate** — local NVR/object detection for IP cameras, feeding Home Assistant. Only relevant
+  if cameras beyond the Reolink doorbell get added; belongs with WS15.
+- **Replace Alexa** — local voice assistant. Overlaps WS15's "local voice" step (Voice PE or
+  Whisper/Piper); decide there rather than separately.
+- **Replace the Amazon Music subscription** — self-hosted music server (e.g. Navidrome) plus a
+  plan for where the library comes from, and how it plays on the house speakers.
