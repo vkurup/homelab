@@ -148,7 +148,7 @@ services:
 
   traefik:
     container_name: traefik
-    image: traefik:v3.7.13
+    image: traefik:v3.7.14
     restart: unless-stopped
     ports:
       - "80:80"
@@ -165,7 +165,7 @@ services:
 
   homepage:
     container_name: homepage
-    image: ghcr.io/gethomepage/homepage:v2.4.0
+    image: ghcr.io/gethomepage/homepage:v2.7.0
     restart: unless-stopped
     network_mode: host
     environment:
@@ -191,7 +191,7 @@ services:
 
   uptime-kuma:
     container_name: uptime-kuma
-    image: louislam/uptime-kuma:2.5.5
+    image: louislam/uptime-kuma:2.5.6
     restart: unless-stopped
     network_mode: host
     volumes:
@@ -230,7 +230,7 @@ services:
   # Disk use is bounded by netdata's own defaults: 1GiB per tier x 3 tiers, ~3GiB total.
   netdata:
     container_name: netdata
-    image: netdata/netdata:v2.11.1
+    image: netdata/netdata:v2.12.1
     restart: unless-stopped
     # pid+network host: netdata reads host processes and interfaces directly. Without
     # pid: host it reports the container's own namespace and the process charts are empty.
@@ -348,7 +348,7 @@ services:
 
   ntfy:
     container_name: ntfy
-    image: binwiederhier/ntfy:v2.28.0
+    image: binwiederhier/ntfy:v2.29.0
     command: serve
     restart: unless-stopped
     user: "${PUID}:${PGID}"  # plain Go binary; honours PUID/PGID unlike the postgis image
