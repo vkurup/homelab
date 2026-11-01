@@ -148,7 +148,7 @@ services:
 
   traefik:
     container_name: traefik
-    image: traefik:v3.7.14
+    image: traefik:v3.7.15
     restart: unless-stopped
     ports:
       - "80:80"
@@ -165,7 +165,7 @@ services:
 
   homepage:
     container_name: homepage
-    image: ghcr.io/gethomepage/homepage:v2.6.0
+    image: ghcr.io/gethomepage/homepage:v2.7.0
     restart: unless-stopped
     network_mode: host
     environment:
@@ -348,7 +348,7 @@ services:
 
   ntfy:
     container_name: ntfy
-    image: binwiederhier/ntfy:v2.29.0
+    image: binwiederhier/ntfy:v2.32.0
     command: serve
     restart: unless-stopped
     user: "${PUID}:${PGID}"  # plain Go binary; honours PUID/PGID unlike the postgis image
