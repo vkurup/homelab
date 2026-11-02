@@ -325,6 +325,11 @@ Make cartman the safe primary home for family photos, then migrate everyone off 
 - Phones (×5) → syncthing (a **host process** under `vinod`, not in compose.yml) → `~/Sync`; the curated library is `~/Pictures` (**415 GB**, Shotwell) on `/dev/sdd1` — a single non-ZFS disk at 72% full.
 - The live duplicacy backup (root's hourly cron, id `cartman` → wdmybook4tb → daily B2 copy) **explicitly excludes** `home/*/Pictures/*` (filter line 64). An old per-user repo that did include Pictures (id `cartman-home` → wdmybook3tb) last ran **2025-08-15** and never reached B2. **Google Photos is currently the only up-to-date backup of the photo library.**
 
+**Update 2026-11-01:**
+- **cartman died** (PSU or board) and is being rebuilt on a TerraMaster F4-424 Pro with a new 8TB ZFS mirror (homebook `docs/runbooks/new-server-migration.md`). In that migration, `~/Pictures` moves off the single disk onto its own dataset, `vkstoragepool/Pictures`, mounted at the same path. That fixes the "single non-ZFS disk" problem above.
+- **The backup gap remains:** duplicacy still excludes `home/*/Pictures/*`, and also `home/*/.local/*`, so the Shotwell library (`~/.local/share/shotwell`: albums, tags, edits) has no backup at all either.
+- **Interim workflow until Immich:** Shotwell runs on the headless cartman, with its window shown on brookfield over waypipe. See `docs/runbooks/shotwell.md`.
+
 **Decisions made (2026-07):**
 - **Immich** as the platform; the Immich mobile app **replaces syncthing** for photo transport (per-user auto-backup over the tailnet, dedupe, sharing). Syncthing retires from photo duty.
 - Import the 415 GB into **Immich-managed storage on the ZFS pool** (1.8 TB free) via `immich-go` — not external-library mode against `~/Pictures`. Gets photos off the tired single disk onto snapshotted storage; full Immich features apply only to managed assets. `immich-go` can also merge a Google Takeout to recover album metadata.
