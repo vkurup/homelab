@@ -210,13 +210,29 @@ services:
       - /run/udev:/run/udev:ro
       - ${CONFIG_ROOT}/scrutiny:/opt/scrutiny/config
       - scrutiny-influxdb:/opt/scrutiny/influxdb
+    # By-id on the host side: sdX letters change with boot order and with what is plugged
+    # in (after the Nov 2026 rebuild they also pointed at TerraMaster's TOS flash chip and
+    # at disks being retired). Scrutiny keys its history on each disk's serial, so the
+    # container-side names are only labels.
+    #
+    # Long syntax, not "host:container": the USB by-id names end in "-0:0", and the short
+    # form splits on that colon.
     devices:
-      - /dev/sda:/dev/sda
-      - /dev/sdb:/dev/sdb
-      - /dev/sdc:/dev/sdc
-      - /dev/sdd:/dev/sdd
-      - /dev/sde:/dev/sde
-      - /dev/sdf:/dev/sdf
+      - source: /dev/disk/by-id/ata-WDC_WD80EFPX-68C4ZN0_WD-1F13MHXU    # pool mirror
+        target: /dev/sda
+        permissions: rwm
+      - source: /dev/disk/by-id/ata-WDC_WD80EFPX-68C4ZN0_WD-1F142K0U    # pool mirror
+        target: /dev/sdb
+        permissions: rwm
+      - source: /dev/disk/by-id/usb-WD_My_Book_25EE_574343374B32524A52504838-0:0  # wdmybook4tb, duplicacy
+        target: /dev/sdc
+        permissions: rwm
+      - source: /dev/disk/by-id/usb-WD_My_Book_1230_574D43344E31353730303836-0:0  # wdmybook3tb, archive
+        target: /dev/sdd
+        permissions: rwm
+      - source: /dev/nvme0                                              # root NVMe
+        target: /dev/nvme0
+        permissions: rwm
 
   # https://learn.netdata.cloud/ -- per-second system metrics (CPU, memory, disk I/O,
   # network) for cartman, plus per-container metrics via the docker socket.
