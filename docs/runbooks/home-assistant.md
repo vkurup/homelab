@@ -60,7 +60,8 @@ snapshots them with duplicacy. Pipeline:
 2. **cartman cron 20:30** — `rsync` over SSH from `vinod@192.168.1.248:/backup/` →
    `/home/vkbackup/ha-backups/`, using the dedicated key `/root/.ssh/ha_backup`.
 3. **cartman cron 20:45** — `duplicacy backup` of that dir under the `homeassistant` snapshot-id
-   into the local storage.
+   into the local storage, reached over `sftp://vkbackup@cartman/...` like every other client
+   (on cartman, `cartman` resolves to loopback, so this is plain OpenSSH, not Tailscale SSH).
 4. **cartman cron 21:01** — the existing `duplicacy copy -from default -to b2` carries it to
    Backblaze B2. The existing `prune -a` crons cover the new snapshot-id's retention
    automatically.
@@ -82,6 +83,22 @@ Verify B2: `cd /home/vkbackup/dummy && duplicacy list -storage b2 -id homeassist
 3. Reinstall any add-ons not in the backup: Advanced SSH & Web Terminal, ha-mcp.
 4. In `/config`, `git pull` to reconcile the hand-written YAML.
 5. Re-add the cartman pull key to the Advanced SSH add-on `authorized_keys`.
+
+**Getting an older `.tar` out of duplicacy.** `ha-backups/` only holds the Pi's last 3. For an
+older one, restore a `homeassistant` revision into a scratch directory on cartman. This reads
+the storage by its path, so it works even if sshd or the `vkbackup` login is broken:
+
+```bash
+mkdir ~/ha-restore && cd ~/ha-restore
+sudo duplicacy init -e homeassistant /media/vinod/wdmybook4tb/duplicacy
+sudo duplicacy list                 # pick a revision
+sudo duplicacy restore -r <rev>     # the .tar files land here
+```
+
+Don't run `duplicacy backup` from this scratch repo: writing by path as root creates
+root-only snapshot folders the staleness check can't read. With cartman gone, init the
+scratch repo on any machine against `b2://vinod-backup` instead (B2 id/key and the storage
+password are in the vault).
 
 ## Access / TLS
 
