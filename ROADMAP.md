@@ -365,6 +365,57 @@ container is needed.
 
 ---
 
+## WS17: Storage Plan for the Rebuilt Pool
+
+cartman was rebuilt in Nov 2026 on an 8TB ZFS mirror (homebook `docs/runbooks/new-server-migration.md`).
+The datasets came over as they were, so protection is uneven. Make it deliberate.
+
+**Proposed rule (to confirm):** every dataset is one of
+- **Irreplaceable**: ZFS snapshots **and** duplicacy (local on wdmybook4tb, then B2).
+- **Re-downloadable**: no snapshots, no backup.
+- **Scratch**: no protection.
+
+**State on 2026-11-07:**
+
+| Dataset | What | Snapshots | duplicacy -> B2 |
+|---|---|---|---|
+| `config` | service state | yes | yes |
+| `data` | media, mostly re-downloadable | no | only `media/homevideos` (added 2026-11-07) |
+| `Pictures` | photo library, 413G | **no** | **no** (filter excludes it; WS14) |
+| `Music` | 29G | no | yes (via `/home`) |
+| `home-backup` | `~/backup`, 63G | no | yes (via `/home`) |
+| `archive` | rescued from the failing wdmybook3tb: google-takeout (652G, from 2023), vpkurup-recovery (36G), movies (694G) | no | **no** |
+| `backup` | empty, a leftover of the old pool | n/a | n/a |
+
+The Shotwell library (`~/.local/share/shotwell`) is also outside duplicacy (`home/*/.local/*` is excluded).
+
+**Tasks:**
+- [ ] Confirm the classes and which datasets are irreplaceable (is `~/backup` worth B2?)
+- [ ] Snapshots for the irreplaceable datasets (opt-in tasks next to `config`'s in homebook's desktop role)
+- [ ] duplicacy coverage: Pictures, the Shotwell library, `archive`. Coordinate with WS14's backup step. About 1.1T more in B2, roughly $7/month at ~$6/TB (check current pricing)
+- [ ] Check `duplicacy2` (515G on wdmybook3tb) holds nothing the live storage doesn't, e.g. the old `cartman-home` repo with an Aug 2025 copy of Pictures, then let it go
+- [ ] Verify the rescue copies (they log unreadable files), then retire wdmybook3tb: 2,164 pending sectors and a failed self-test as of 2026-11-07
+- [ ] Delete the empty `backup` dataset
+- [ ] **Evaluate `archive/vpkurup-recovery`** (1,040 files from a 2021 recovery job): inventory by type, size, date and duplicates, then decide what to keep and where
+- [ ] **Google Takeout**: renew the scheduled export ("every 2 months for 1 year") at takeout.google.com; file exports under `archive/google-takeout/YYYYMMDD/`. A quarterly reminder mail runs on cartman (homebook desktop role, since 2026-11-07). Immich can merge Takeouts later (WS14)
+
+---
+
+## WS18: Home Videos
+
+Home videos are scattered and unprocessed: `media/homevideos` (88G, by year, 2009-2025, in the
+otherwise re-downloadable `data` dataset) and `archive/movies` (694G of `complete`/`new`/`raw`,
+rescued from the failing wdmybook3tb), with probable overlap.
+
+**Done (short term, 2026-11-07):** `media/homevideos` added to duplicacy (local + B2); `movies` copied off the failing disk.
+
+**Tasks:**
+- [ ] Inventory both locations and find duplicates
+- [ ] Decide the layout: one home-video library (own dataset, irreplaceable class per WS17), raw footage vs edited
+- [ ] Decide processing: transcode/trim raw footage? what Jellyfin shows?
+- [ ] Back up the consolidated library (snapshots + duplicacy), then drop the duplicates
+---
+
 ## Someday / Maybe
 
 Low priority; not committed to. Promote to a workstream when one becomes interesting.

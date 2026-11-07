@@ -210,10 +210,12 @@ services:
       - /run/udev:/run/udev:ro
       - ${CONFIG_ROOT}/scrutiny:/opt/scrutiny/config
       - scrutiny-influxdb:/opt/scrutiny/influxdb
-    # By-id on the host side: sdX letters change with boot order and with what is plugged
-    # in (after the Nov 2026 rebuild they also pointed at TerraMaster's TOS flash chip and
-    # at disks being retired). Scrutiny keys its history on each disk's serial, so the
-    # container-side names are only labels.
+    # privileged gives the container every host disk, and scrutiny scans them all with
+    # smartctl --scan, so this list does NOT limit what it monitors. (That is useful: it
+    # flagged the failing wdmybook3tb in Nov 2026.) It records the disks that matter, by
+    # stable id: sdX letters move with boot order and with what is plugged in. Retired
+    # disks stay in scrutiny's UI until deleted there. Scrutiny keys history on serials,
+    # so the container-side names are only labels.
     #
     # Long syntax, not "host:container": the USB by-id names end in "-0:0", and the short
     # form splits on that colon.
