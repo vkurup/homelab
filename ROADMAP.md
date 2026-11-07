@@ -450,7 +450,7 @@ Things that stand out:
 - **Nothing in `~/Sync` is backed up.** The shared duplicacy filter excludes `home/*/Sync/*` on every host. Copies on several devices protect against a dead disk, not against a deletion, which every send-receive folder propagates everywhere.
 - **No folder has file versioning**, so a deletion or overwrite on one device is unrecoverable.
 - **Things cartman depends on live in `~/Sync/Vinod`**: the cron PATH includes `~/Sync/Vinod/bin`, and the motivation, mission and pinboard jobs read and write under it.
-- **Stale devices:** giannis and kenny are retired. drkurup.com receives several camera folders: what is it, and should it?
+- **Stale devices:** giannis and kenny are retired. Kavi's phone was last seen 2026-08-24, Avik's 2026-09-20, and Vinod's Pixel 7 in Jan 2024, so their camera folders aren't syncing. drkurup.com receives several camera folders: what is it, and should it?
 - **Odd sharing:** Vinod's own phone folder isn't shared with Vinod's Pixel 7; Anika's folder has no Anika device.
 - **Headless now:** syncthing is vinod's *user* service, kept running by lingering (homebook vinod role, since the Nov 2026 rebuild).
 - `~/Sync/Shared` (empty) is created by the playbook (homebook vinod role) but isn't a Syncthing folder.
