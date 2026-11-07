@@ -397,7 +397,7 @@ The Shotwell library (`~/.local/share/shotwell`) is also outside duplicacy (`hom
 - [ ] Verify the rescue copies (they log unreadable files), then retire wdmybook3tb: 2,164 pending sectors and a failed self-test as of 2026-11-07
 - [ ] Delete the empty `backup` dataset
 - [ ] **Evaluate `archive/vpkurup-recovery`** (1,040 files from a 2021 recovery job): inventory by type, size, date and duplicates, then decide what to keep and where
-- [ ] **Google Takeout**: renew the scheduled export ("every 2 months for 1 year") at takeout.google.com; file exports under `archive/google-takeout/YYYYMMDD/`. A quarterly reminder mail runs on cartman (homebook desktop role, since 2026-11-07). Immich can merge Takeouts later (WS14)
+- [x] **Google Takeout schedule renewed 2026-11-06**: every 2 months for 1 year (tgz, 50GB parts), so it expires around the same date in 2027. A quarterly reminder mail runs on cartman (homebook desktop role) to renew it and to file each export under `archive/google-takeout/YYYYMMDD/`. Immich can merge Takeouts later (WS14)
 
 ---
 
