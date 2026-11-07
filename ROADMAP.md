@@ -75,6 +75,12 @@ anything in this one.** The options above were written before that coverage exis
       `$CONFIG_ROOT`: `files/duplicacy-filters` in homebook explicitly includes
       `mnt/storage/config/*` (Jellyfin's re-downloadable metadata excluded, its library DB
       with watch history kept). A second mechanism would duplicate that and drift from it.
+- [ ] **Fix the mpuri001 Gmail backup.** offlineimap (homebook desktop role, 02:22 cron) backs
+      up two accounts to `~/backup/gmail/`. vvkurup works; mpuri001 fails with "Invalid
+      credentials" and hasn't synced since 2021-12-14. Nobody noticed because the cron job
+      sends output to `/dev/null`. Make a new app password and update
+      `imap_gmail_password_mpuri001` in homebook's vault (or drop the account), then make a
+      failed sync reach cron mail or the staleness check
 
 Two layers, covering different failures: **ZFS snapshots** are the fast local undo for an
 accidental delete or bad config change, and are useless for disk or host loss because they
