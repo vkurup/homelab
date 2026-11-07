@@ -384,7 +384,7 @@ The datasets came over as they were, so protection is uneven. Make it deliberate
 | `Pictures` | photo library, 413G | **no** | **no** (filter excludes it; WS14) |
 | `Music` | 29G | no | yes (via `/home`) |
 | `home-backup` | `~/backup`, 63G | no | yes (via `/home`) |
-| `archive` | rescued from the failing wdmybook3tb: google-takeout (652G, from 2023), vpkurup-recovery (36G), movies (694G) | no | **no** |
+| `archive` | google-takeout (`20261107`: 1,045G in 29 parts; `20230430`: 634G, delete once the new one is verified), vpkurup-recovery (36G) and movies (694G), both rescued from the failing wdmybook3tb | no | **no** |
 | `backup` | empty, a leftover of the old pool | n/a | n/a |
 
 The Shotwell library (`~/.local/share/shotwell`) is also outside duplicacy (`home/*/.local/*` is excluded).
@@ -392,11 +392,18 @@ The Shotwell library (`~/.local/share/shotwell`) is also outside duplicacy (`hom
 **Tasks:**
 - [ ] Confirm the classes and which datasets are irreplaceable (is `~/backup` worth B2?)
 - [ ] Snapshots for the irreplaceable datasets (opt-in tasks next to `config`'s in homebook's desktop role)
-- [ ] duplicacy coverage: Pictures, the Shotwell library, `archive`. Coordinate with WS14's backup step. About 1.1T more in B2, roughly $7/month at ~$6/TB (check current pricing)
+- [ ] duplicacy coverage: Pictures, the Shotwell library, `archive` (but only part of Google Takeout, below). Coordinate with WS14's backup step. About 1.1T more in B2, roughly $7/month at ~$6/TB (check current pricing)
 - [ ] Check `duplicacy2` (515G on wdmybook3tb) holds nothing the live storage doesn't, e.g. the old `cartman-home` repo with an Aug 2025 copy of Pictures, then let it go
 - [ ] Verify the rescue copies (they log unreadable files), then retire wdmybook3tb: 2,164 pending sectors and a failed self-test as of 2026-11-07
 - [ ] Delete the empty `backup` dataset
 - [ ] **Evaluate `archive/vpkurup-recovery`** (1,040 files from a 2021 recovery job): inventory by type, size, date and duplicates, then decide what to keep and where
+- [ ] **Google Takeout off-site: only the small non-photo parts.** Photos and Mail make up
+      nearly all of each export and are protected elsewhere (photos off-site; mail by
+      offlineimap), so the bulk stays local. The rest is small and covered by nothing else:
+      in `20261107` it's all in one 969 MB part (`-8-001`: Contacts, Calendar, Keep, Voice,
+      Blogger, Maps, Fit, Tasks, ...). Part numbers change between exports, so select by
+      content: e.g. extract every service except Google Photos and Mail into
+      `archive/google-takeout/YYYYMMDD-small/` and back up only that (duplicacy, local + B2)
 - [x] **Google Takeout schedule renewed 2026-11-06**: every 2 months for 1 year (tgz, 50GB parts), so it expires around the same date in 2027. A quarterly reminder mail runs on cartman (homebook desktop role) to renew it and to file each export under `archive/google-takeout/YYYYMMDD/`. Immich can merge Takeouts later (WS14)
 
 ---
