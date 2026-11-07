@@ -416,6 +416,41 @@ rescued from the failing wdmybook3tb), with probable overlap.
 - [ ] Back up the consolidated library (snapshots + duplicacy), then drop the duplicates
 ---
 
+## WS19: Review How Syncthing Is Used
+
+Syncthing has grown by accretion: phone camera uploads, a "Dropbox" folder, retired machines.
+Work out what it is actually for now, what WS14 (Immich) takes over, and whether what it
+carries is protected.
+
+**What cartman's config shows (2026-11-07):**
+
+| Folder | Path on cartman | Shared with |
+|---|---|---|
+| Vinod's Dropbox | `~/Sync/Vinod` (722M) | giannis, kenny, Vinod's Pixel 7, brookfield, drkurup.com |
+| Vinod's Phone | `~/Sync/Cameras/Vinod` | drkurup.com |
+| Mala's Phone | `~/Sync/Cameras/Mala` | Mala's Pixel 9a, brookfield, drkurup.com |
+| Kavi's Phone | `~/Sync/Cameras/Kavi` | Kavi's Phone, brookfield |
+| Avik's Phone | `~/Sync/Cameras/Avik` | Avik's Phone, drkurup.com |
+| Anika's Phone | `~/Sync/Cameras/Anika` | brookfield only (no Anika device configured) |
+
+Things that stand out:
+- **Nothing in `~/Sync` is backed up.** The shared duplicacy filter excludes `home/*/Sync/*` on every host. Copies on several devices protect against a dead disk, not against a deletion, which every send-receive folder propagates everywhere.
+- **No folder has file versioning**, so a deletion or overwrite on one device is unrecoverable.
+- **Things cartman depends on live in `~/Sync/Vinod`**: the cron PATH includes `~/Sync/Vinod/bin`, and the motivation, mission and pinboard jobs read and write under it.
+- **Stale devices:** giannis and kenny are retired. drkurup.com receives several camera folders: what is it, and should it?
+- **Odd sharing:** Vinod's own phone folder isn't shared with Vinod's Pixel 7; Anika's folder has no Anika device.
+- **Headless now:** syncthing is vinod's *user* service, kept running by lingering (homebook vinod role, since the Nov 2026 rebuild).
+- `~/Sync/Shared` (empty) is created by the playbook (homebook vinod role) but isn't a Syncthing folder.
+
+**Tasks:**
+- [ ] Decide what each folder is for, and who should have it
+- [ ] Camera folders: keep until WS14's Immich auto-backup replaces them, then retire
+- [ ] "Vinod's Dropbox": keep as is, or replace (e.g. Immich doesn't cover documents)?
+- [ ] Protect what stays: duplicacy coverage for `~/Sync/Vinod` (filter change), and/or Syncthing file versioning on cartman
+- [ ] Remove retired devices (giannis, kenny); decide about drkurup.com
+- [ ] Use `~/Sync/Shared` for something, or drop it from the playbook
+---
+
 ## Someday / Maybe
 
 Low priority; not committed to. Promote to a workstream when one becomes interesting.
