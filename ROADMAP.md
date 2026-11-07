@@ -476,6 +476,30 @@ fails before doing anything.
 - [ ] Re-enable the job; drop `alpha_vantage_api_key` from the vault and the cron vars
 ---
 
+## WS21: Camera Video Sweep Without Ruby
+
+Before importing phone photos into Shotwell (about monthly, by hand), `video-mv.rb`
+(`~/Sync/Vinod/bin`) moves the videos out of a `~/Sync/Cameras/<person>` folder into
+`~/movies/new/`, renamed `YYYY-MM-DD-HH-MM-SS-<person>-<file>`, so they're archived and
+kept out of Shotwell. It needs Ruby, which the rebuilt cartman doesn't have (and shouldn't
+need just for this).
+
+**State (2026-11-07):**
+- `~/movies` is a symlink to `/media/vinod/wdmybook3tb/movies`, the failing disk that's
+  still mounted: anything moved there now lands on the drive WS17 retires. The rescued
+  copy is `/mnt/storage/archive/movies/new`.
+- 10 videos are waiting (9 in `Vinod/Camera`, 1 in `Anika/Camera`). No urgency.
+- It has a dead branch that re-encodes Canon AVIs with `mencoder`.
+
+**Tasks:**
+- [ ] Remove the `~/movies` symlink (before the next monthly run)
+- [ ] Rewrite it with what cartman already has (bash/coreutils, or Python 3 standard
+      library): same naming, all camera folders in one run, drop the Canon branch, and a
+      dry-run mode. Destination per WS18's layout (`archive/movies/new` until then)
+- [ ] Decide whether it stays a manual step or runs on a timer
+- [ ] Retire it when WS14's Immich auto-backup replaces the camera folders (see WS19)
+---
+
 ## Someday / Maybe
 
 Low priority; not committed to. Promote to a workstream when one becomes interesting.
