@@ -451,6 +451,31 @@ Things that stand out:
 - [ ] Use `~/Sync/Shared` for something, or drop it from the playbook
 ---
 
+## WS20: Bring Back the 99-Day Signal
+
+`~/dev/ninety-nine` ([github.com/vkurup/ninety-nine](https://github.com/vkurup/ninety-nine))
+emails a daily market-timing signal: buy while SPY has made a new 99-day high within the last
+99 days, otherwise sell. It has been broken for some time, and on the rebuilt cartman it
+fails before doing anything.
+
+**What's there (2026-11-07):**
+- Python 2.7 in a virtualenv (`env/`) that no longer works (the rebuilt cartman has no
+  Python 2), using the `alpha_vantage` library for SPY daily prices. Alpha Vantage needs
+  replacing as the price source.
+- State is a pickle (`99.pkl`) of the last 99 days, so only new days are fetched.
+- It runs at 04:45 from vinod's crontab (homebook desktop role, "check 99 day signal"),
+  with `ALPHA_VANTAGE_API_KEY` set as a cron variable from the vault. It pipes into
+  `mail`, so every run sends a traceback mail now.
+
+**Tasks:**
+- [ ] Stop the daily failure mail until it's fixed (disable the cron job in homebook)
+- [ ] Pick a free source of daily SPY high/close prices (e.g. Stooq CSV, Tiingo, yfinance)
+- [ ] Port to Python 3 (uv, no checked-in virtualenv); replace the pickle with something
+      readable, or just refetch the last ~200 days each run
+- [ ] Decide where it runs: cron on cartman as before, or a container in this repo
+- [ ] Re-enable the job; drop `alpha_vantage_api_key` from the vault and the cron vars
+---
+
 ## Someday / Maybe
 
 Low priority; not committed to. Promote to a workstream when one becomes interesting.
