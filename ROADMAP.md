@@ -1,557 +1,231 @@
 # Roadmap
 
-Personal home server stack based on a fork of [htpc-download-box](https://github.com/sebgl/htpc-download-box). Running on `cartman` (192.168.1.20).
-
----
-
-## WS1: Repo Hygiene ✓
-
-Clean up the repo so it reflects what's actually running, not upstream docs.
-
-- [x] Remove or replace upstream README (references Jackett, NZBGet, Plex — none of which are in use)
-- [x] Delete Vagrantfile (not used)
-- [x] Stage the `docker-compose.yml → compose.yml` rename
-- [x] Restore `.env.example` with placeholder values (was deleted; documents required vars)
-- [x] Decide: commit `.claude/` and `openspec/` or gitignore them
-- [x] Verify `.gitignore` covers all secrets (`.env` is already there)
-- [x] Write a short README that describes the actual stack
-
----
-
-## WS2: Deploy Workflow ✓
-
-`make deploy` SSHs to cartman, pulls latest commits, and runs `docker compose up -d`. Script lives at `bin/deploy.sh`.
-
----
-
-## WS3: Books ✓ (partially complete)
-
-**Calibre-Web** is running at `cartman:8083` serving the existing Calibre library from `$MEDIA_ROOT/media/books/library`. OPDS confirmed working at `/opds`.
-
-**Readarr removed** — official project retired June 2025, community fork had SQLite permission issues. Book acquisition is manual for now (upload via Calibre-Web UI).
-
-**Remaining TODOs:**
-- Configure Send-to-Kindle email (`Admin → Email settings` in Calibre-Web)
-- Verify OPDS with a reader app
-- If automated book downloading becomes a priority, evaluate alternatives (e.g. LazyLibrarian)
-- Metadata on upload: Google Books requires API key, Goodreads API is shut down. Evaluate alternatives (e.g. enable Calibre binaries + `fetch-ebook-metadata`, or a self-hosted metadata proxy)
-
----
-
-## WS4: Access & Service Portal ✓
-
-Traefik + Homepage running at `*.home.kurup.net`. TLS via Let's Encrypt + Cloudflare DNS challenge. Split DNS: EdgeRouter for LAN, Cloudflare for Tailscale. Traefik dashboard protected with basicAuth.
-
-**Possible future simplification:** Move Traefik to `network_mode: host` (consistent with all other services) so backend URLs in `config/traefik/dynamic/services.yml` can use `localhost` instead of the hardcoded `192.168.1.20` IP.
-
-**Future:** Consider Pi-hole for network-wide ad blocking + local DNS resolver (replaces EdgeRouter dnsmasq config)
+Home server stack on `cartman` (192.168.1.20). Finished workstreams move to
+[ROADMAP-done.md](ROADMAP-done.md) (WS1-4, 8, 10, 11); numbers are never reused.
 
 ---
 
 ## WS5: Backup
 
-Service configs live in `$CONFIG_ROOT` (`/mnt/storage/config`) on cartman. If the server dies without a backup, all UI configuration (indexers, download clients, quality profiles, users, etc.) is lost. Media in `$MEDIA_ROOT` has the same risk.
+duplicacy (homebook) backs up cartman, brookfield and Home Assistant hourly to wdmybook4tb
+and daily to B2. See homebook `docs/runbooks/duplicacy-backup.md`.
 
-**Strategy: periodic offsite backup of `$CONFIG_ROOT`**
-
-Config is small (MBs) and changes infrequently — easy to back up. Media is large and replaceable (re-downloadable), so backing it up is optional.
-
-**Options:**
-- **rclone to cloud** (Backblaze B2, S3, Google Drive) — good for offsite, cheap for small config dirs
-- **rsync to NAS or another machine** — good if you have local storage elsewhere
-- **`make backup` target** — rsync `$CONFIG_ROOT` from cartman to laptop on demand
-
-**Status (audited 2026-08-21): done, by duplicacy in the homebook repo rather than by
-anything in this one.** The options above were written before that coverage existed.
-
-- [x] Determine where `/mnt/storage` lives on cartman — local ZFS pool (`vkstoragepool`)
-- [x] Set up automatic ZFS snapshots via cron — `zfs-auto-snapshot` on
-      `vkstoragepool/config` (frequent/hourly/daily/weekly/monthly). Media (`data`) is
-      deliberately excluded: 1.85T on a 3.62T pool, and snapshots would pin every torrent
-      the *arr stack deletes after seeding. See homebook `docs/runbooks/zfs-snapshots.md`.
-- [x] Decide on offsite backup destination — Backblaze B2, daily `duplicacy copy`
-- [x] Schedule backup — duplicacy runs hourly from root's crontab on cartman
-- [x] ~~Add `bin/backup.sh` + `make backup`~~ — **not needed.** duplicacy already backs up
-      `$CONFIG_ROOT`: `files/duplicacy-filters` in homebook explicitly includes
-      `mnt/storage/config/*` (Jellyfin's re-downloadable metadata excluded, its library DB
-      with watch history kept). A second mechanism would duplicate that and drift from it.
-- [ ] **Fix the mpuri001 Gmail backup.** offlineimap (homebook desktop role, 02:22 cron) backs
-      up two accounts to `~/backup/gmail/`. vvkurup works; mpuri001 fails with "Invalid
-      credentials" and hasn't synced since 2021-12-14. Nobody noticed because the cron job
-      sends output to `/dev/null`. Make a new app password and update
-      `imap_gmail_password_mpuri001` in homebook's vault (or drop the account), then make a
-      failed sync reach cron mail or the staleness check
-
-Two layers, covering different failures: **ZFS snapshots** are the fast local undo for an
-accidental delete or bad config change, and are useless for disk or host loss because they
-sit on the same pool. **duplicacy → B2** is the offsite copy for hardware failure or theft.
-
-Monitoring for both: a daily staleness check mails if any client stops backing up, and a
-dead man's switch reports cartman itself dying (WS8). See homebook
-`docs/runbooks/duplicacy-backup.md`.
+- [ ] **Fix the mpuri001 Gmail backup.** offlineimap fails with "Invalid credentials" and
+      hasn't synced since 2021-12-14 (cron sends its output to `/dev/null`). New app password
+      in `imap_gmail_password_mpuri001`, or drop the account; then make a failed sync visible
 
 ---
 
 ## WS6: Claude Code Sandbox
 
-Run Claude Code in an isolated environment so it can't affect the host system outside of intended boundaries (filesystem, network, process access). Useful for running Claude on cartman directly or from the laptop with controlled blast radius.
+Run Claude Code where it can't affect the host beyond intended limits.
 
-**Open questions:**
-- What should be sandboxed? (filesystem writes, network access, shell commands, all of the above)
-- Should the sandbox run on cartman, the laptop, or both?
-- Acceptable performance/complexity tradeoff?
-
-**Options to evaluate:**
-- **Docker container** — easy to set up, good filesystem/network isolation, Claude Code runs inside
-- **VM** (e.g. lima, multipass, UTM) — stronger isolation, more overhead
-- **bubblewrap / firejail** — lightweight Linux sandboxing, no VM overhead, Linux-only
-- **Claude Code's built-in permission system** — already provides some guardrails (tool approval, path restrictions)
+- [ ] Decide what to isolate (files, network, commands) and where (cartman, brookfield)
+- [ ] Pick one: Docker container, VM, bubblewrap/firejail, or Claude Code's own permissions
 
 ---
 
 ## WS7: Automated Book Acquisition
 
-Evaluate a Readarr replacement for automated ebook downloading. Book acquisition is currently manual (upload via Calibre-Web UI).
+Replace Readarr for ebook downloads (currently uploaded by hand in Calibre-Web).
 
-**Candidates:**
-- **[Shelfmark](https://github.com/calibrain/shelfmark)** — newer project, Calibre-aware
-- **[LazyLibrarian](https://gitlab.com/LazyLibrarian/LazyLibrarian)** — established, integrates with SABnzbd/NZB indexers and torrent clients
-
-**Suggested tasks:**
-- [ ] Evaluate Shelfmark: activity level, amd64 support, Calibre-Web integration
-- [ ] Evaluate LazyLibrarian: feature set, usenet support, last release date
-- [ ] Pick one and add to compose.yml, wiring to SABnzbd + Calibre library
-- [ ] Verify downloaded books appear in Calibre-Web automatically
-
----
-
-## WS8: Monitoring ✓
-
-Health and performance visibility for the stack.
-
-- [x] Add Uptime Kuma to compose.yml (`uptime.home.kurup.net`) and Homepage dashboard
-- [x] Add Scrutiny to compose.yml (`scrutiny.home.kurup.net`) with S.M.A.R.T. disk monitoring
-
-**Post-deploy setup:**
-- Uptime Kuma: create monitors for each service via the web UI, then grab the status page slug for the Homepage widget (`slug: default`)
-- Scrutiny: verify it detects cartman's drives; if more than `/dev/sda`, add additional `devices:` entries in compose.yml
-
-System metrics (CPU, memory, disk I/O) deferred to WS11.
-
-**Alerting (added 2026-08-20):** Uptime Kuma pushes to ntfy (`https://ntfy.home.kurup.net`,
-topic `homelab`), attached to all 12 monitors. Verified end-to-end.
-
-**Gap (closed 2026-08-21): cartman is its own watchman.** Uptime Kuma and ntfy both run *on* cartman, so
-the one outage this setup structurally cannot report is cartman itself going down — the
-monitor and the notifier die with the thing they watch. Everything else is covered.
-
-- [x] Add an external dead man's switch so cartman's own death is reported. Something
-      off-box expects a periodic ping and alerts when it stops arriving (inverted
-      monitoring: silence is the alarm, so it survives cartman being unreachable).
-      Live since 2026-08-21.
-- [x] Decide where it lives — healthchecks.io (hosted, free tier, email alerts). Not
-      brookfield: a laptop is often asleep or off the LAN, which makes it a poor watchman.
-- [x] Whatever pings it must be independent of the stack being healthy — a plain host cron
-      on cartman (every 10 minutes, as vinod), not a container, so a wedged-but-running
-      Docker cannot keep the switch alive while services are down.
-
-See homebook `docs/runbooks/dead-mans-switch.md`.
-
-Planned here because WS8 is where monitoring lives, but it **implements in the homebook
-repo** — the ping is a host cron, not a container, so it belongs to Ansible (same split as
-the Home Assistant backup, see `docs/runbooks/home-assistant.md`).
-
-**Related tuning:** ntfy notification priority was dropped from 5 (ntfy's max, which bypasses
-Do Not Disturb and made every brief flap an urgent 3am alert) to 4 on 2026-08-20. Note that
-ntfy has no auth configured, so anyone on the LAN can publish to or read the `homelab` topic.
+- [ ] Evaluate [Shelfmark](https://github.com/calibrain/shelfmark) and
+      [LazyLibrarian](https://gitlab.com/LazyLibrarian/LazyLibrarian)
+- [ ] Add the winner to compose.yml, wired to SABnzbd and the Calibre library
+- [ ] Verify new books appear in Calibre-Web
+- [ ] Metadata on upload (Google Books needs an API key; Goodreads' API is gone)
 
 ---
 
 ## WS9: Media Requests (Jellyseerr)
 
-Let family request movies and TV shows without needing access to Radarr/Sonarr directly.
+Let the family request movies and shows without Radarr/Sonarr access.
 
-**Jellyseerr** sits in front of Radarr/Sonarr and provides a Netflix-style request UI. Family browses available media, submits requests, and Radarr/Sonarr handle the download automatically.
-
-**Suggested tasks:**
-- [ ] Add `jellyseerr` service to compose.yml
-- [ ] Connect Jellyseerr to Jellyfin (for user auth), Radarr, and Sonarr
-- [ ] Add Traefik route (`requests.home.kurup.net` or similar)
-- [ ] Add tile to Homepage
-- [ ] Invite family members and verify request flow end-to-end
-
----
-
-## WS11: System Metrics (Netdata) ✓
-
-CPU, memory, disk I/O, and network visibility for cartman, plus per-container metrics.
-
-- [x] Decide: Netdata vs Grafana stack — **Netdata**. One container against a Grafana +
-      Prometheus + exporters stack, for a single host, with useful dashboards out of the
-      box. Grafana's advantages (long retention, custom dashboards, multi-host) are things
-      this setup does not currently need.
-- [x] Add to compose.yml, Traefik (`netdata.home.kurup.net`) and the Homepage dashboard
-
-**Local only.** `DO_NOT_TRACK=1` disables anonymous telemetry and the agent is not claimed
-into Netdata Cloud, so metrics never leave the house.
-
-**Storage is under `MEDIA_ROOT`, not `CONFIG_ROOT`, on purpose.** `CONFIG_ROOT` is
-ZFS-snapshotted hourly (WS5) and backed up to B2 by duplicacy. A time-series database
-rewrites itself continuously, so putting it there would bloat every snapshot and push metric
-churn into the offsite backup. The `data` dataset has `auto-snapshot=false` and is outside
-duplicacy's include filters.
-
-Disk use is bounded by netdata's own defaults — 1GiB per tier across 3 tiers, ~3GiB total —
-so no custom `netdata.conf` is needed.
-
-**Possible follow-up:** netdata has its own health alarms (disk filling, CPU saturation,
-RAM pressure). They are not wired to ntfy yet. Uptime Kuma covers up/down and
-`disk-space-check` covers filesystems, so the gap is resource *trends* rather than outages.
-Worth doing only if the noise proves worth it — netdata's default alarm set is chatty.
-
----
-
-## WS10: Container Update Notifications ✓ (superseded 2026-09-12)
-
-Know when a watched image has an update, so security patches get applied deliberately rather
-than discovered by accident.
-
-**Originally diun, now Dependabot.** diun watched every container and pushed a notification to
-the ntfy topic `homelab-updates` whenever an image digest moved. In use it failed on its own
-terms. It was noisy, firing per image per day. Its content could not be acted on: because
-almost every image rode a floating tag, there was no version to name and no changelog to read,
-only "the digest moved". And a dependency cooldown was unimplementable, since delaying a
-notification changes nothing when the pull still fetches whatever is newest.
-
-The root cause was the floating tags, not the notifier. Fixing the tags made the notification
-problem mostly disappear.
-
-- [x] Pin image tags to the upstream application version each service runs
-- [x] Move Prowlarr off `nightly` to stable
-- [x] Add `.github/dependabot.yml` — weekly, grouped by role, 5 open PRs max, 14-day cooldown
-      (30 for major)
-- [x] Remove diun, its labels, and the `homelab-updates` ntfy topic
-
-Updates now arrive as pull requests naming a real version change, and GitHub's own PR email is
-the notification. No push notifications for image updates. ntfy stays for Uptime Kuma alerts.
-
-**Two images are knowingly not version-managed:**
-- `scrutiny` — publishes only `master-omnibus`, no version tag exists to pin
-- the life103 stack (`life103-backend`, `life103-apk`, and its postgis) — internal, single
-  user, deliberately out of scope
-
-**Two are pinned by digest, not version:** `gluetun` and `grampsweb` publish a `latest` that is
-built ahead of their newest version tag, so no version tag describes what runs. Pinning them
-forward to the newest tag was a downgrade and broke both — gluetun lost the VPN entirely and
-grampsweb could not run its database migrations backwards. Digest pins record what actually
-runs.
-
-**Known gap:** a tag like `linuxserver/sonarr:4.0.19` still floats across LinuxServer's
-`-lsNNN` packaging rebuilds, which arrive with no PR and no cooldown. Accepted deliberately:
-those carry base-image security patches rather than application changes. See
-`openspec/changes/pin-images-and-dependabot/design.md`.
+- [ ] Add `jellyseerr` to compose.yml; connect Jellyfin (auth), Radarr, Sonarr
+- [ ] Traefik route and Homepage tile
+- [ ] Invite the family; test a request end to end
 
 ---
 
 ## WS12: Swap Deluge → qBittorrent
 
-Replace Deluge with qBittorrent as the torrent client. **Low-stakes** — Usenet (SABnzbd) is the primary downloader, so torrents are a fallback and there's little state worth preserving. Do a clean swap, not a fussy migration.
+Torrents are only a fallback to SABnzbd, so do a clean swap, not a migration. qBittorrent
+has native *arr seed limits and ratio **and** seed-time limits (no AutoRemovePlus).
 
-**Why switch:** native Sonarr/Radarr seed-limit integration (Radarr manages/tracks seeding explicitly instead of inferring it from Deluge's paused state); built-in ratio **and** seed-time limits with no AutoRemovePlus plugin (fixes the "unpopular torrent never hits ratio, so it never gets cleaned up" gap); category→save-path management; a single Web UI password (no Deluge daemon-RPC `localclient` split); and active upstream development. qBittorrent is the de facto default for *arr stacks.
+Gotchas: Web UI on **8112** (Deluge's port; SABnzbd owns 8080 on gluetun). Runs as
+`network_mode: service:gluetun`. Mount `${MEDIA_ROOT}/torrents:/data/torrents` so imports
+hardlink. First start sets a random password: see `docker logs qbittorrent`.
 
-**Constraints / gotchas (read before starting):**
-- **Reuse port 8112** for the qBittorrent Web UI (Deluge's old port) — avoids changing gluetun port mappings or Traefik. Do **not** use qBittorrent's default 8080; SABnzbd owns 8080 on gluetun.
-- qBittorrent runs behind gluetun (`network_mode: service:gluetun`), same as Deluge. No port forwarding on PureVPN, so incoming connections stay disabled (expected).
-- Mount `${MEDIA_ROOT}/torrents:/data/torrents` (same as Deluge) so imports **hardlink** with `/data/media` — keep the save path on the `/data` mount.
-- The linuxserver qBittorrent image sets a **random temporary Web UI password on first start** — read it from `docker logs qbittorrent`, then set a real one. (Ships libtorrent 2.x; a `libtorrentv1` image tag exists if compatibility/memory is an issue.)
-
-**Suggested tasks:**
-- [ ] Note any private-tracker torrents still seeding in Deluge (e.g. `auctor.tv`) so they can be re-added and kept seeding
-- [ ] compose.yml: remove the `deluge` service; add `qbittorrent` (`lscr.io/linuxserver/qbittorrent`, `network_mode: service:gluetun`, volumes `${CONFIG_ROOT}/qbittorrent:/config` + `${MEDIA_ROOT}/torrents:/data/torrents`, env `PUID`/`PGID`/`TZ` + `WEBUI_PORT=8112`); keep gluetun's `8112:8112` mapping
-- [ ] Traefik: rename the `deluge` router/service → `qbittorrent` in `config/traefik/dynamic/services.yml`, pointing at `gluetun:8112`
-- [ ] Homepage: swap the Deluge tile/widget for qBittorrent in `config/homepage/services.yaml`
-- [ ] Deploy; read the temp password from `docker logs qbittorrent`; set a real Web UI password
-- [ ] Configure qBittorrent: default save path `/data/torrents`; categories `radarr` and `sonarr`; Share Ratio Limiting = ratio `2.0` **or** seed time (e.g. 14 days) → action **Pause**
-- [ ] Radarr & Sonarr: remove the Deluge download client, add qBittorrent (host `127.0.0.1`, port `8112`, matching category); set the now-available Seed Ratio/Time fields; keep **Remove Completed Downloads** on
-- [ ] Re-add the noted private-tracker torrents to qBittorrent (add the .torrent/magnet, save to `/data/torrents`, **Force Recheck** → resumes seeding from the existing hardlinked files, no re-download)
-- [ ] Verify end-to-end: grab a title → download → import (hardlink, link count 2) → seed → auto-cleanup, Jellyfin copy intact
-- [ ] Update README "First-run service configuration" and CLAUDE.md to describe qBittorrent instead of Deluge
-- [ ] After a few days of confidence, delete `${CONFIG_ROOT}/deluge` on cartman
-
-**Rollback:** keep `${CONFIG_ROOT}/deluge` until qBittorrent is verified; revert the compose.yml change to bring Deluge back on 8112.
+- [ ] Note private-tracker torrents still seeding in Deluge (e.g. `auctor.tv`)
+- [ ] compose.yml: replace `deluge` with `lscr.io/linuxserver/qbittorrent` (`WEBUI_PORT=8112`)
+- [ ] Rename the Traefik router (`config/traefik/dynamic/services.yml`) and Homepage tile
+- [ ] Set a real password; save path `/data/torrents`; categories `radarr`, `sonarr`; ratio
+      2.0 or 14 days seeding → Pause
+- [ ] Radarr/Sonarr: swap the download client (`127.0.0.1:8112`), set seed limits
+- [ ] Re-add the private-tracker torrents and Force Recheck
+- [ ] Test grab → import (hardlink) → seed → cleanup; update README and CLAUDE.md
+- [ ] Delete `${CONFIG_ROOT}/deluge` after a few days (until then it's the rollback)
 
 ---
 
 ## WS13: Family Ebook Library
 
-Make the existing Calibre-Web library (1.1 GB at `books.home.kurup.net`) usable by the whole family: 4 at home, 1 kid at college. Devices are 2 Kindles + Kindle Android apps, so **Send-to-Kindle email is the delivery path for every device** — no OPDS reader apps needed. Book acquisition stays manual (WS7 is separate).
+Make Calibre-Web usable by all five of us. Every device is a Kindle or the Kindle app, so
+Send-to-Kindle email is the delivery path.
 
-**Suggested tasks:**
-- [ ] Configure Send-to-Kindle email in Calibre-Web (Admin → Email settings — the dangling WS3 TODO). Needs an SMTP relay (e.g. a Gmail app password) and each device's `@kindle.com` address, with the sender allowlisted in each Amazon account's "Approved Personal Document E-mail List"
-- [ ] Create per-person Calibre-Web accounts (no shared admin login); set each user's Kindle address
-- [ ] Add the college kid's devices to the tailnet so `books.home.kurup.net` works remotely
-- [ ] Verify end-to-end from off-LAN: browse → Send to Kindle → book arrives on device
-- [ ] Write a short family-facing "how to get a book" note
-
----
-
-## WS15: Home Assistant Buildout
-
-Buildout of the Home Assistant setup beyond tracking/backups (started 2026-06-26; infra design and current live state are in [docs/runbooks/home-assistant.md](docs/runbooks/home-assistant.md)).
-
-**Household:** 2 adults + 3 kids, all with phones. One kid home from college for summer 2026; two teenagers. Family of 5 total.
-
-**Hard constraints:**
-- Keep everything **as local as possible** (no cloud dependence).
-- Everything must **still work physically if HA/automation is broken** (e.g. wall switches/buttons a kid can always press; alerts are additive layers, never the only path).
-
-**Stated priorities:**
-- First win = **Security & alerts**.
-- Family UX wants: physical switches/buttons + phone app/dashboard + **local voice** (voice is later, most involved).
-
-**Roadmap:**
-- [ ] **Foundation** — add all 5 as Persons, HA Companion app on every phone → presence/away signal (currently only Vinod + 2 of his trackers exist)
-- [ ] **Security** — wire Reolink doorbell person/vehicle/package AI to phone push; Zigbee contact+motion sensors on exterior doors with away-mode gating
-- [ ] **Smart plugs** → lamps with physical control preserved
-- [ ] **Local voice** last (Voice PE or Whisper/Piper)
-
-**Open hardware unknowns (physically check):** exact Zigbee/Z-Wave USB stick model (may already have one); brand/model of the unboxed smart plugs (unknown/mixed).
-
-**Existing relevant hardware:** Reolink doorbell+chime (local AI detection), Shelly plug on garage freezer, 2 thermostats (upstairs: Nest, downstairs: Trane XL824 via Nexia cloud — the XL824 has no local-API path, see runbook), Shield/speakers/XGIMI media. Kitchen area has 0 entities (unassigned devices to fix).
+- [ ] Send-to-Kindle email in Calibre-Web (SMTP relay; sender approved in each Amazon account)
+- [ ] An account per person, each with their Kindle address
+- [ ] The college kid's devices on the tailnet; test from off the LAN
+- [ ] A short "how to get a book" note for the family
 
 ---
 
 ## WS14: Photos — Replace Google Photos (Immich)
 
-Make cartman the safe primary home for family photos, then migrate everyone off Google Photos.
+Make cartman the primary home for family photos, then leave Google Photos. **Before
+starting, run `/grill-me` on this plan.**
 
-> **Deferred — not starting yet.** When picking this up: **run a `/grill-me` session on this plan first** to stress-test it (backup ordering, syncthing retirement, import strategy, family rollout) before writing a change proposal.
+The library is `~/Pictures` (413G, dataset `vkstoragepool/Pictures`, Shotwell, viewed over
+waypipe: `docs/runbooks/shotwell.md`). Neither it nor the Shotwell library
+(`~/.local/share/shotwell`) is backed up: Google Photos is the only other copy.
 
-**Current state (audited 2026-07-10):**
-- Phones (×5) → syncthing (a **host process** under `vinod`, not in compose.yml) → `~/Sync`; the curated library is `~/Pictures` (**415 GB**, Shotwell) on `/dev/sdd1` — a single non-ZFS disk at 72% full.
-- The live duplicacy backup (root's hourly cron, id `cartman` → wdmybook4tb → daily B2 copy) **explicitly excludes** `home/*/Pictures/*` (filter line 64). An old per-user repo that did include Pictures (id `cartman-home` → wdmybook3tb) last ran **2025-08-15** and never reached B2. **Google Photos is currently the only up-to-date backup of the photo library.**
+Decided: Immich, importing into Immich-managed storage on the pool with `immich-go`; the
+Immich app replaces Syncthing for phone photos; shared links for people without accounts;
+pin the version. **Google stays on until a B2 restore is verified.**
 
-**Update 2026-11-01:**
-- **cartman died** (PSU or board) and is being rebuilt on a TerraMaster F4-424 Pro with a new 8TB ZFS mirror (homebook `docs/runbooks/new-server-migration.md`). In that migration, `~/Pictures` moves off the single disk onto its own dataset, `vkstoragepool/Pictures`, mounted at the same path. That fixes the "single non-ZFS disk" problem above.
-- **The backup gap remains:** duplicacy still excludes `home/*/Pictures/*`, and also `home/*/.local/*`, so the Shotwell library (`~/.local/share/shotwell`: albums, tags, edits) has no backup at all either.
-- **Interim workflow until Immich:** Shotwell runs on the headless cartman, with its window shown on brookfield over waypipe. See `docs/runbooks/shotwell.md`.
+- [ ] Backup first: snapshots and duplicacy → B2 for the photo data (with WS17)
+- [ ] Immich stack in compose.yml (server, ML, Postgres with vectors, Redis), `/dev/dri`
+- [ ] Traefik route (`photos.home.kurup.net`) and Homepage tile
+- [ ] Five accounts; partner sharing / family albums
+- [ ] Import `~/Pictures` (optionally merge a Takeout for albums); check counts and dates
+- [ ] Immich app with auto-backup on all five phones, over the tailnet
+- [ ] Test-restore the photos from B2
+- [ ] Retire the camera folders in Syncthing and the Shotwell workflow; then downgrade Google
 
-**Decisions made (2026-07):**
-- **Immich** as the platform; the Immich mobile app **replaces syncthing** for photo transport (per-user auto-backup over the tailnet, dedupe, sharing). Syncthing retires from photo duty.
-- Import the 415 GB into **Immich-managed storage on the ZFS pool** (1.8 TB free) via `immich-go` — not external-library mode against `~/Pictures`. Gets photos off the tired single disk onto snapshotted storage; full Immich features apply only to managed assets. `immich-go` can also merge a Google Takeout to recover album metadata.
-- Read-only sharing with non-Immich users is covered by Immich **shared links** (optional password/expiry/metadata-hiding).
-- **Backup is a hard prerequisite** for family adoption (WS5): the Immich photo dataset must reach B2 (~415 GB ≈ $2.50/mo). **Google stays on until a B2 restore is verified.**
-- Pin the Immich version and update deliberately — fast-moving project with breaking releases. Must be on the Watchtower exclude list (WS10).
+---
 
-**Suggested tasks:**
-- [ ] Backup first: ZFS snapshot schedule for the photo dataset + duplicacy coverage that reaches B2 (new snapshot-id, or fix the `Pictures` exclusion story deliberately)
-- [ ] Add the Immich stack to compose.yml (server, machine-learning, Postgres w/ vector extension, Redis), photo storage on the ZFS pool; pass `/dev/dri` for QuickSync like Jellyfin
-- [ ] Traefik route (`photos.home.kurup.net`) + Homepage tile
-- [ ] Create 5 user accounts; set up partner sharing / family albums
-- [ ] Bulk-import `~/Pictures` with `immich-go`; optionally merge Google Takeout for albums; verify counts/dates
-- [ ] Install the Immich app on all 5 phones (tailnet), enable auto-backup, confirm it works away from home
-- [ ] Verify B2 backup of the photo dataset with a test restore
-- [ ] Decommission: remove photo folders from syncthing, retire the Shotwell workflow, keep `~/Pictures` untouched until confident, then downgrade Google Photos storage
+## WS15: Home Assistant Buildout
+
+Design and live state: [docs/runbooks/home-assistant.md](docs/runbooks/home-assistant.md).
+Constraints: as local as possible, and everything still works physically if HA is down.
+
+- [ ] **Foundation:** all five as Persons, Companion app on every phone (presence)
+- [ ] **Security:** Reolink person/vehicle/package alerts to phones; Zigbee door and motion
+      sensors, gated on away mode
+- [ ] **Smart plugs** on lamps, keeping physical control
+- [ ] **Local voice** last (Voice PE or Whisper/Piper)
+- [ ] Check the hardware: Zigbee/Z-Wave stick model, the unboxed smart plugs; assign the
+      kitchen devices
 
 ---
 
 ## WS16: Read-Later Archive (Readeck)
 
-Save articles from a phone to read later, archived on cartman so they stay readable after the
-original goes behind a paywall or disappears. Readeck stores the full page content, not just a
-link, which is why it beats Wallabag for this. It is a single binary on SQLite, so no database
-container is needed.
+Save articles from phones, archived in full on cartman. Single binary on SQLite.
 
-**Suggested tasks:**
-- [ ] Add `readeck` service to compose.yml, data under `${CONFIG_ROOT}/readeck` (inside the backup sweep)
-- [ ] Add Traefik route (`readeck.home.kurup.net` or similar)
-- [ ] Add tile to Homepage
-- [ ] Set up saving from phones (share sheet / browser extension) over the tailnet
-- [ ] Create accounts for whoever wants one
+- [ ] Add `readeck` to compose.yml, data in `${CONFIG_ROOT}/readeck`
+- [ ] Traefik route and Homepage tile
+- [ ] Saving from phones over the tailnet; accounts for whoever wants one
 
 ---
 
 ## WS17: Storage Plan for the Rebuilt Pool
 
-cartman was rebuilt in Nov 2026 on an 8TB ZFS mirror (homebook `docs/runbooks/new-server-migration.md`).
-The datasets came over as they were, so protection is uneven. Make it deliberate.
+Make protection deliberate. Proposed classes: **irreplaceable** (snapshots + duplicacy → B2),
+**re-downloadable** (nothing), **scratch** (nothing).
 
-**Proposed rule (to confirm):** every dataset is one of
-- **Irreplaceable**: ZFS snapshots **and** duplicacy (local on wdmybook4tb, then B2).
-- **Re-downloadable**: no snapshots, no backup.
-- **Scratch**: no protection.
-
-**State on 2026-11-07:**
-
-| Dataset | What | Snapshots | duplicacy -> B2 |
+| Dataset | What | Snapshots | duplicacy → B2 |
 |---|---|---|---|
 | `config` | service state | yes | yes |
-| `data` | media, mostly re-downloadable | no | only `media/homevideos` (added 2026-11-07) |
-| `Pictures` | photo library, 413G | **no** | **no** (filter excludes it; WS14) |
-| `Music` | 29G | no | yes (via `/home`) |
-| `home-backup` | `~/backup`, 63G | no | yes (via `/home`) |
-| `archive` | google-takeout (`20261107`: 1,045G in 29 parts; `20230430`: 634G, delete once the new one is verified), vpkurup-recovery (36G) and movies (694G), both rescued from the failing wdmybook3tb | no | **no** |
-| `backup` | empty, a leftover of the old pool | n/a | n/a |
+| `data` | media | no | only `media/homevideos` |
+| `Pictures` | photos, 413G | **no** | **no** (WS14) |
+| `Music` | 29G | no | yes |
+| `home-backup` | `~/backup`, 63G | no | yes |
+| `archive` | google-takeout (1.1T), vpkurup-recovery (36G), movies (694G) | no | **no** |
+| `backup` | empty leftover | | |
 
-The Shotwell library (`~/.local/share/shotwell`) is also outside duplicacy (`home/*/.local/*` is excluded).
-
-**Tasks:**
-- [ ] Confirm the classes and which datasets are irreplaceable (is `~/backup` worth B2?)
-- [ ] Snapshots for the irreplaceable datasets (opt-in tasks next to `config`'s in homebook's desktop role)
-- [ ] duplicacy coverage: Pictures, the Shotwell library, `archive` (but only part of Google Takeout, below). Coordinate with WS14's backup step. About 1.1T more in B2, roughly $7/month at ~$6/TB (check current pricing)
-- [ ] Check `duplicacy2` (515G on wdmybook3tb) holds nothing the live storage doesn't, e.g. the old `cartman-home` repo with an Aug 2025 copy of Pictures, then let it go
-- [ ] Verify the rescue copies (they log unreadable files), then retire wdmybook3tb: 2,164 pending sectors and a failed self-test as of 2026-11-07
+- [ ] Confirm the classes (is `~/backup` worth B2?)
+- [ ] Snapshots for irreplaceable datasets (opt-in tasks next to `config`'s in homebook)
+- [ ] duplicacy for Pictures, the Shotwell library and `archive` (about 1.1T more in B2)
+- [ ] Google Takeout: back up only the non-photo, non-mail services (one ~1G part), extracted
+      to `archive/google-takeout/YYYYMMDD-small/`
+- [ ] Check `duplicacy2` on wdmybook3tb holds nothing unique, then let it go
+- [ ] Verify the rescue copies, then retire wdmybook3tb (2,164 pending sectors)
 - [ ] Delete the empty `backup` dataset
-- [ ] **Evaluate `archive/vpkurup-recovery`** (1,040 files from a 2021 recovery job): inventory by type, size, date and duplicates, then decide what to keep and where
-- [ ] **Google Takeout off-site: only the small non-photo parts.** Photos and Mail make up
-      nearly all of each export and are protected elsewhere (photos off-site; mail by
-      offlineimap), so the bulk stays local. The rest is small and covered by nothing else:
-      in `20261107` it's all in one 969 MB part (`-8-001`: Contacts, Calendar, Keep, Voice,
-      Blogger, Maps, Fit, Tasks, ...). Part numbers change between exports, so select by
-      content: e.g. extract every service except Google Photos and Mail into
-      `archive/google-takeout/YYYYMMDD-small/` and back up only that (duplicacy, local + B2)
-- [x] **Google Takeout schedule renewed 2026-11-06**: every 2 months for 1 year (tgz, 50GB parts), so it expires around the same date in 2027. A quarterly reminder mail runs on cartman (homebook desktop role) to renew it and to file each export under `archive/google-takeout/YYYYMMDD/`. Immich can merge Takeouts later (WS14)
+- [ ] Sort through `archive/vpkurup-recovery`
+- [ ] Renew the Takeout schedule by Nov 2027 (a quarterly reminder mail runs)
 
 ---
 
 ## WS18: Home Videos
 
-Home videos are scattered and unprocessed: `media/homevideos` (88G, by year, 2009-2025, in the
-otherwise re-downloadable `data` dataset) and `archive/movies` (694G of `complete`/`new`/`raw`,
-rescued from the failing wdmybook3tb), with probable overlap.
+Consolidate `media/homevideos` (88G, backed up) and `archive/movies` (694G, not backed up),
+which probably overlap.
 
-**Done (short term, 2026-11-07):** `media/homevideos` added to duplicacy (local + B2); `movies` copied off the failing disk.
+- [ ] Inventory both and find duplicates
+- [ ] Decide the layout (own dataset, irreplaceable per WS17; raw vs edited) and processing
+- [ ] Back up the consolidated library, then drop the duplicates
 
-**Tasks:**
-- [ ] Inventory both locations and find duplicates
-- [ ] Decide the layout: one home-video library (own dataset, irreplaceable class per WS17), raw footage vs edited
-- [ ] Decide processing: transcode/trim raw footage? what Jellyfin shows?
-- [ ] Back up the consolidated library (snapshots + duplicacy), then drop the duplicates
 ---
 
 ## WS19: Review How Syncthing Is Used
 
-Syncthing has grown by accretion: phone camera uploads, a "Dropbox" folder, retired machines.
-Work out what it is actually for now, what WS14 (Immich) takes over, and whether what it
-carries is protected.
+Folders: Vinod's Dropbox (`~/Sync/Vinod`) and one camera folder per family member. Nothing in
+`~/Sync` is backed up or versioned, yet cartman's cron jobs depend on `~/Sync/Vinod`.
 
-**What cartman's config shows (2026-11-07):**
+- [ ] Decide what each folder is for and who should have it
+- [ ] Camera folders: retire once Immich (WS14) replaces them
+- [ ] Protect what stays: duplicacy for `~/Sync/Vinod` and/or file versioning on cartman
+- [ ] Remove retired devices (giannis, kenny); decide about drkurup.com; Avik's and Kavi's
+      phones haven't connected for months
+- [ ] Use `~/Sync/Shared` or drop it from the playbook
 
-| Folder | Path on cartman | Shared with |
-|---|---|---|
-| Vinod's Dropbox | `~/Sync/Vinod` (722M) | giannis, kenny, Vinod's Pixel 7, brookfield, drkurup.com |
-| Vinod's Phone | `~/Sync/Cameras/Vinod` | drkurup.com |
-| Mala's Phone | `~/Sync/Cameras/Mala` | Mala's Pixel 9a, brookfield, drkurup.com |
-| Kavi's Phone | `~/Sync/Cameras/Kavi` | Kavi's Phone, brookfield |
-| Avik's Phone | `~/Sync/Cameras/Avik` | Avik's Phone, drkurup.com |
-| Anika's Phone | `~/Sync/Cameras/Anika` | brookfield only (no Anika device configured) |
-
-Things that stand out:
-- **Nothing in `~/Sync` is backed up.** The shared duplicacy filter excludes `home/*/Sync/*` on every host. Copies on several devices protect against a dead disk, not against a deletion, which every send-receive folder propagates everywhere.
-- **No folder has file versioning**, so a deletion or overwrite on one device is unrecoverable.
-- **Things cartman depends on live in `~/Sync/Vinod`**: the cron PATH includes `~/Sync/Vinod/bin`, and the motivation, mission and pinboard jobs read and write under it.
-- **Stale devices:** giannis and kenny are retired. Kavi's phone was last seen 2026-08-24, Avik's 2026-09-20, and Vinod's Pixel 7 in Jan 2024, so their camera folders aren't syncing. drkurup.com receives several camera folders: what is it, and should it?
-- **Odd sharing:** Vinod's own phone folder isn't shared with Vinod's Pixel 7; Anika's folder has no Anika device.
-- **Headless now:** syncthing is vinod's *user* service, kept running by lingering (homebook vinod role, since the Nov 2026 rebuild).
-- `~/Sync/Shared` (empty) is created by the playbook (homebook vinod role) but isn't a Syncthing folder.
-
-**Tasks:**
-- [ ] Decide what each folder is for, and who should have it
-- [ ] Camera folders: keep until WS14's Immich auto-backup replaces them, then retire
-- [ ] "Vinod's Dropbox": keep as is, or replace (e.g. Immich doesn't cover documents)?
-- [ ] Protect what stays: duplicacy coverage for `~/Sync/Vinod` (filter change), and/or Syncthing file versioning on cartman
-- [ ] Remove retired devices (giannis, kenny); decide about drkurup.com
-- [ ] Use `~/Sync/Shared` for something, or drop it from the playbook
 ---
 
 ## WS20: Bring Back the 99-Day Signal
 
-`~/dev/ninety-nine` ([github.com/vkurup/ninety-nine](https://github.com/vkurup/ninety-nine))
-emails a daily market-timing signal: buy while SPY has made a new 99-day high within the last
-99 days, otherwise sell. It has been broken for some time, and on the rebuilt cartman it
-fails before doing anything.
+`~/dev/ninety-nine` mails a daily buy/sell signal from SPY's 99-day highs. It's Python 2 with
+Alpha Vantage, and its cron job is disabled.
 
-**What's there (2026-11-07):**
-- Python 2.7 in a virtualenv (`env/`) that no longer works (the rebuilt cartman has no
-  Python 2), using the `alpha_vantage` library for SPY daily prices. Alpha Vantage needs
-  replacing as the price source.
-- State is a pickle (`99.pkl`) of the last 99 days, so only new days are fetched.
-- It runs at 04:45 from vinod's crontab (homebook desktop role, "check 99 day signal"),
-  with `ALPHA_VANTAGE_API_KEY` set as a cron variable from the vault. It pipes into
-  `mail`, so every run sends a traceback mail now.
+- [ ] Pick a free daily SPY price source (Stooq, Tiingo, yfinance)
+- [ ] Port to Python 3 with uv; drop the pickle (or refetch ~200 days each run)
+- [ ] Decide where it runs (cartman cron or a container here), then re-enable it
+- [ ] Drop `alpha_vantage_api_key` from the vault and `~/.cron-secrets.env`
 
-**Tasks:**
-- [ ] Stop the daily failure mail until it's fixed (disable the cron job in homebook)
-- [ ] Pick a free source of daily SPY high/close prices (e.g. Stooq CSV, Tiingo, yfinance)
-- [ ] Port to Python 3 (uv, no checked-in virtualenv); replace the pickle with something
-      readable, or just refetch the last ~200 days each run
-- [ ] Decide where it runs: cron on cartman as before, or a container in this repo
-- [ ] Re-enable the job; drop `alpha_vantage_api_key` from the vault and the cron vars
 ---
 
 ## WS21: Camera Video Sweep Without Ruby
 
-Before importing phone photos into Shotwell (about monthly, by hand), `video-mv.rb`
-(`~/Sync/Vinod/bin`) moves the videos out of a `~/Sync/Cameras/<person>` folder into
-`~/movies/new/`, renamed `YYYY-MM-DD-HH-MM-SS-<person>-<file>`, so they're archived and
-kept out of Shotwell. It needs Ruby, which the rebuilt cartman doesn't have (and shouldn't
-need just for this).
+`video-mv.rb` (`~/Sync/Vinod/bin`) moves videos out of the camera folders before a Shotwell
+import, renamed `YYYY-MM-DD-HH-MM-SS-<person>-<file>`. cartman has no Ruby.
 
-**State (2026-11-07):**
-- `~/movies` is a symlink to `/media/vinod/wdmybook3tb/movies`, the failing disk that's
-  still mounted: anything moved there now lands on the drive WS17 retires. The rescued
-  copy is `/mnt/storage/archive/movies/new`.
-- 10 videos are waiting (9 in `Vinod/Camera`, 1 in `Anika/Camera`). No urgency.
-- It has a dead branch that re-encodes Canon AVIs with `mencoder`.
+- [ ] Remove the `~/movies` symlink (it points at the failing wdmybook3tb)
+- [ ] Rewrite in bash or stdlib Python: same naming, all folders, dry-run mode; destination
+      `archive/movies/new` until WS18 decides
+- [ ] Retire it when Immich (WS14) replaces the camera folders
 
-**Tasks:**
-- [ ] Remove the `~/movies` symlink (before the next monthly run)
-- [ ] Rewrite it with what cartman already has (bash/coreutils, or Python 3 standard
-      library): same naming, all camera folders in one run, drop the Canon branch, and a
-      dry-run mode. Destination per WS18's layout (`archive/movies/new` until then)
-- [ ] Decide whether it stays a manual step or runs on a timer
-- [ ] Retire it when WS14's Immich auto-backup replaces the camera folders (see WS19)
 ---
 
 ## WS22: Review the Python Tooling
 
-The Python setup on brookfield and cartman was chosen years ago (pyenv from 2021, the
-direnv layout earlier still) and has drifted: the Mac moved to mise on 2026-11-01, and the
-two Linux machines didn't.
+pyenv + pyenv-virtualenv and direnv's `layout pyenv` (all 14 `.envrc` in `~/dev`) date from
+years ago; asdf overlaps; the Mac moved to mise. It broke on 2026-11-08 when a Mac dotfiles
+change dropped pyenv from `.bash_profile`.
 
-**What's there (2026-11-08):**
-- pyenv and pyenv-virtualenv, git-cloned and updated by homebook's vinod role, plus the
-  build packages pyenv needs. brookfield has 3.9, 3.10, 3.11, 3.12 and 3.13 installed.
-- All 14 `.envrc` files in `~/dev` use direnv's `layout pyenv <version>`, with a
-  `layout_python` override in `~/.config/direnv/direnvrc` for an old direnv deprecation
-  warning. `~/.dotfiles/bin/pyinstall.sh` installs each version in `.python-version`.
-- Tools such as ansible live inside per-project venvs (`.direnv/python-*`); there's no
-  pipx or uv tool install. No project has a `uv.lock`.
-- asdf overlaps as the version manager for everything else: the role pins the old git-clone
-  v0.8.1, brookfield runs the 0.16 binary, and the Mac uses mise instead.
-- It's fragile: on 2026-11-08 a dotfiles change for the Mac dropped pyenv from
-  `.bash_profile`, and every `.envrc` on brookfield broke.
+- [ ] Choose: uv (versions, venvs, lockfiles, `uv tool install`) and/or mise (replaces pyenv
+      and asdf, as on the Mac)
+- [ ] Pick the matching direnv pattern; migrate the `.envrc` files, homebook first
+- [ ] Update homebook's vinod role and the dotfiles to match on Linux and macOS
+- [ ] Remove unused Python versions
 
-**Tasks:**
-- [ ] Decide on the replacement. uv covers Python versions, venvs, lockfiles and tools
-      (`uv tool install ansible`); mise could replace pyenv and asdf together on all three
-      machines, as it already has on the Mac
-- [ ] Pick the direnv pattern that goes with it (e.g. a `layout uv` in direnvrc, or mise's
-      own env activation) and migrate the 14 `.envrc` files, homebook first
-- [ ] Update homebook's vinod role: drop the pyenv clones and build packages, and the asdf
-      clone if mise takes over; make the dotfiles the same on Linux and macOS
-- [ ] Remove the old Python versions nothing uses any more
 ---
 
 ## Someday / Maybe
 
-Low priority; not committed to. Promote to a workstream when one becomes interesting.
-
-- **Audiobookshelf** — audiobook + podcast server with good phone apps; would sit on the same
-  `/data` layout as Jellyfin and calibre-web. Possibly part of WS13.
-- **Frigate** — local NVR/object detection for IP cameras, feeding Home Assistant. Only relevant
-  if cameras beyond the Reolink doorbell get added; belongs with WS15.
-- **Replace Alexa** — local voice assistant. Overlaps WS15's "local voice" step (Voice PE or
-  Whisper/Piper); decide there rather than separately.
-- **Replace the Amazon Music subscription** — self-hosted music server (e.g. Navidrome) plus a
-  plan for where the library comes from, and how it plays on the house speakers.
+- **Audiobookshelf:** audiobooks and podcasts, on the same `/data` layout (maybe with WS13)
+- **Frigate:** local NVR for more cameras, feeding HA (with WS15)
+- **Replace Alexa:** decide in WS15's local-voice step
+- **Replace Amazon Music:** e.g. Navidrome, plus where the library comes from
+- **Traefik on host networking:** backends could use `localhost` instead of `192.168.1.20`
+- **Pi-hole:** ad blocking and local DNS in place of the EdgeRouter's dnsmasq
+- **Netdata alarms to ntfy:** resource trends; its defaults are chatty
