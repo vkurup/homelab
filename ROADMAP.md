@@ -513,6 +513,36 @@ need just for this).
 - [ ] Retire it when WS14's Immich auto-backup replaces the camera folders (see WS19)
 ---
 
+## WS22: Review the Python Tooling
+
+The Python setup on brookfield and cartman was chosen years ago (pyenv from 2021, the
+direnv layout earlier still) and has drifted: the Mac moved to mise on 2026-11-01, and the
+two Linux machines didn't.
+
+**What's there (2026-11-08):**
+- pyenv and pyenv-virtualenv, git-cloned and updated by homebook's vinod role, plus the
+  build packages pyenv needs. brookfield has 3.9, 3.10, 3.11, 3.12 and 3.13 installed.
+- All 14 `.envrc` files in `~/dev` use direnv's `layout pyenv <version>`, with a
+  `layout_python` override in `~/.config/direnv/direnvrc` for an old direnv deprecation
+  warning. `~/.dotfiles/bin/pyinstall.sh` installs each version in `.python-version`.
+- Tools such as ansible live inside per-project venvs (`.direnv/python-*`); there's no
+  pipx or uv tool install. No project has a `uv.lock`.
+- asdf overlaps as the version manager for everything else: the role pins the old git-clone
+  v0.8.1, brookfield runs the 0.16 binary, and the Mac uses mise instead.
+- It's fragile: on 2026-11-08 a dotfiles change for the Mac dropped pyenv from
+  `.bash_profile`, and every `.envrc` on brookfield broke.
+
+**Tasks:**
+- [ ] Decide on the replacement. uv covers Python versions, venvs, lockfiles and tools
+      (`uv tool install ansible`); mise could replace pyenv and asdf together on all three
+      machines, as it already has on the Mac
+- [ ] Pick the direnv pattern that goes with it (e.g. a `layout uv` in direnvrc, or mise's
+      own env activation) and migrate the 14 `.envrc` files, homebook first
+- [ ] Update homebook's vinod role: drop the pyenv clones and build packages, and the asdf
+      clone if mise takes over; make the dotfiles the same on Linux and macOS
+- [ ] Remove the old Python versions nothing uses any more
+---
+
 ## Someday / Maybe
 
 Low priority; not committed to. Promote to a workstream when one becomes interesting.
