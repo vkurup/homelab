@@ -137,7 +137,7 @@ Save articles from phones, archived in full on cartman. Single binary on SQLite.
 
 Make protection deliberate. Classes: **irreplaceable** (snapshots + duplicacy → B2),
 **re-downloadable** (nothing), **scratch** (nothing). Decided: home video and photos go to B2
-through duplicacy (about +$7/month). Google Takeout gets a local backup copy but not B2. wdmybook4tb
+through duplicacy (about +$7/month). Google Takeout is itself the local copy: no backup. wdmybook4tb
 (local duplicacy storage, ~7.5 years powered on) is replaced when it fails, not before.
 
 | Dataset | What | Snapshots | duplicacy → B2 |
@@ -153,8 +153,6 @@ through duplicacy (about +$7/month). Google Takeout gets a local backup copy but
 - [ ] Confirm the classes (is `~/backup` worth B2?)
 - [ ] Snapshots for irreplaceable datasets (opt-in tasks next to `config`'s in homebook)
 - [ ] duplicacy for `archive/movies`, Pictures and the Shotwell library (about 1.2T more in B2)
-- [ ] A local-only backup of `archive/google-takeout` (1.1T), e.g. its own duplicacy id that
-      the B2 copy skips (`copy -id`). wdmybook4tb would then hold ~3.1T of 3.6T
 - [ ] Check `duplicacy2` on wdmybook3tb holds nothing unique, then let it go
 - [ ] Verify the rescue copies, then retire wdmybook3tb (2,164 pending sectors)
 - [ ] Delete the empty `backup` dataset
