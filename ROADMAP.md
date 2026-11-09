@@ -3,6 +3,10 @@
 Home server stack on `cartman` (192.168.1.20). Finished workstreams move to
 [ROADMAP-done.md](ROADMAP-done.md) (WS1-4, 8, 10, 11); numbers are never reused.
 
+**Order (decided 2026-11-08, a few hours a week):** first protection: WS23, WS17, WS5.
+Then WS14. The rest after, one project at a time; the small ones (WS9, WS12, WS16) fit
+between big ones. What matters most to keep: home video, then photos, then `~/Sync`.
+
 ---
 
 ## WS5: Backup
@@ -131,8 +135,10 @@ Save articles from phones, archived in full on cartman. Single binary on SQLite.
 
 ## WS17: Storage Plan for the Rebuilt Pool
 
-Make protection deliberate. Proposed classes: **irreplaceable** (snapshots + duplicacy → B2),
-**re-downloadable** (nothing), **scratch** (nothing).
+Make protection deliberate. Classes: **irreplaceable** (snapshots + duplicacy → B2),
+**re-downloadable** (nothing), **scratch** (nothing). Decided: home video and photos go to B2
+through duplicacy (about +$7/month); Google Takeout doesn't need protecting. wdmybook4tb
+(local duplicacy storage, ~7.5 years powered on) is replaced when it fails, not before.
 
 | Dataset | What | Snapshots | duplicacy → B2 |
 |---|---|---|---|
@@ -146,14 +152,11 @@ Make protection deliberate. Proposed classes: **irreplaceable** (snapshots + dup
 
 - [ ] Confirm the classes (is `~/backup` worth B2?)
 - [ ] Snapshots for irreplaceable datasets (opt-in tasks next to `config`'s in homebook)
-- [ ] duplicacy for Pictures, the Shotwell library and `archive` (about 1.1T more in B2)
-- [ ] Google Takeout: back up only the non-photo, non-mail services (one ~1G part), extracted
-      to `archive/google-takeout/YYYYMMDD-small/`
+- [ ] duplicacy for `archive/movies`, Pictures and the Shotwell library (about 1.2T more in B2)
 - [ ] Check `duplicacy2` on wdmybook3tb holds nothing unique, then let it go
 - [ ] Verify the rescue copies, then retire wdmybook3tb (2,164 pending sectors)
 - [ ] Delete the empty `backup` dataset
 - [ ] Sort through `archive/vpkurup-recovery`
-- [ ] Renew the Takeout schedule by Nov 2027 (a quarterly reminder mail runs)
 
 ---
 
@@ -217,6 +220,21 @@ change dropped pyenv from `.bash_profile`.
 - [ ] Pick the matching direnv pattern; migrate the `.envrc` files, homebook first
 - [ ] Update homebook's vinod role and the dotfiles to match on Linux and macOS
 - [ ] Remove unused Python versions
+
+---
+
+## WS23: Catch Silent Failures
+
+Most scheduled jobs fail silently: HA backups failed from June to Nov 2026, mpuri001 since
+2021, and a stalled B2 copy went unnoticed. Alerts go by email.
+
+- [ ] A healthchecks.io check per scheduled job on cartman (duplicacy backup, check, prune,
+      B2 copy and prune, HA pull and backup, offlineimap, pinboard); ping on success, so a
+      failure, a missed run or a hang alerts. Free tier: 20 checks. URLs in `~/.cron-secrets.env`
+- [ ] brookfield stays on the staleness check, with a grace period that survives a vacation
+- [ ] Scrutiny alerts by email (SMART changes on the pool and USB disks)
+- [ ] Monthly `ansible-playbook --check` on cartman (no `--diff`), reporting to healthchecks,
+      so playbook drift shows up within a month; brookfield gets a manual run after upgrades
 
 ---
 
