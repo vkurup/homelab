@@ -240,6 +240,21 @@ Most scheduled jobs fail silently: HA backups failed from June to Nov 2026, mpur
 
 ---
 
+## WS24: Pick the Best Photos for Shutterfly
+
+A separate pass after the regular sweep (`docs/runbooks/shotwell.md`, "Processing new
+photos"): review the library, pick the best photos, and upload them to Shutterfly, today
+from monthly albums in Shotwell exported over waypipe.
+
+- [ ] Write down the current flow as it is (how picks are marked, album per month or per
+      book, export settings, upload from brookfield's browser) in the Shotwell runbook
+- [ ] Decide where it lives once WS14 lands: Shotwell albums now vs. Immich albums or
+      favorites later, so the effort isn't spent twice
+- [ ] Make the export-to-brookfield step one command (or an Immich download)
+- [ ] Pick a cadence (monthly?) and add it to the processing runbook
+
+---
+
 ## Someday / Maybe
 
 - **Audiobookshelf:** audiobooks and podcasts, on the same `/data` layout (maybe with WS13)
