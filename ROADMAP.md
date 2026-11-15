@@ -180,8 +180,8 @@ Folders: Vinod's Dropbox (`~/Sync/Vinod`) and one camera folder per family membe
 - [ ] Decide what each folder is for and who should have it
 - [ ] Camera folders: retire once Immich (WS14) replaces them
 - [ ] Protect what stays: duplicacy for `~/Sync/Vinod` and/or file versioning on cartman
-- [ ] Remove retired devices (giannis, kenny); decide about drkurup.com; Avik's and Kavi's
-      phones haven't connected for months
+- [ ] Remove retired devices (giannis, kenny); decide about drkurup.com (do1); Kavi's
+      phone hasn't connected for months
 - [ ] Use `~/Sync/Shared` or drop it from the playbook
 
 ---
@@ -200,12 +200,13 @@ Alpha Vantage, and its cron job is disabled.
 
 ## WS21: Camera Video Sweep Without Ruby
 
-`video-mv.rb` (`~/Sync/Vinod/bin`) moves videos out of the camera folders before a Shotwell
-import, renamed `YYYY-MM-DD-HH-MM-SS-<person>-<file>`. cartman has no Ruby.
+`video-mv` (`~/Sync/Vinod/bin`) moves videos out of the camera folders before a Shotwell
+import, renamed `YYYY-MM-DD-HH-MM-SS-<person>-<file>`. It replaced `video-mv.rb` (cartman
+has no Ruby).
 
-- [ ] Remove the `~/movies` symlink (it points at the failing wdmybook3tb)
-- [ ] Rewrite in bash or stdlib Python: same naming, all folders, dry-run mode; destination
-      `archive/movies/new` until WS18 decides
+- [x] Remove the `~/movies` symlink (it points at the failing wdmybook3tb)
+- [x] Rewrite in bash or stdlib Python: same naming, all folders, dry-run mode; destination
+      `archive/movies/new` until WS18 decides. Now `video-mv` (stdlib Python, names by mtime)
 - [ ] Retire it when Immich (WS14) replaces the camera folders
 
 ---
