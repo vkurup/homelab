@@ -165,7 +165,7 @@ services:
 
   homepage:
     container_name: homepage
-    image: ghcr.io/gethomepage/homepage:v2.7.0
+    image: ghcr.io/gethomepage/homepage:v2.8.0
     restart: unless-stopped
     network_mode: host
     environment:
@@ -366,7 +366,7 @@ services:
 
   ntfy:
     container_name: ntfy
-    image: binwiederhier/ntfy:v2.36.0
+    image: binwiederhier/ntfy:v2.37.0
     command: serve
     restart: unless-stopped
     user: "${PUID}:${PGID}"  # plain Go binary; honours PUID/PGID unlike the postgis image
