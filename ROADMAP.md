@@ -235,8 +235,8 @@ Most scheduled jobs fail silently: HA backups failed from June to Nov 2026, mpur
       and list: homebook `docs/runbooks/duplicacy-backup.md` ("healthchecks.io pings")
   - [x] duplicacy hourly backup, `duplicacy check`, B2 copy, HA pull (the staleness check
         can't see a failed pull: the backup after it succeeds on stale files)
+  - [x] pinboard (now verifies the download; an API error used to overwrite the backup)
   - [ ] offlineimap (with WS5's mpuri001 fix, or it is red from day one)
-  - [ ] pinboard (its curl needs `-f`, or an API error counts as success)
   - Skipped on purpose: both prunes (no data lost when one fails) and the HA duplicacy
     backup (the staleness check covers it)
 - [ ] brookfield stays on the staleness check, with a grace period that survives a vacation
