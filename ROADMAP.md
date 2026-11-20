@@ -244,8 +244,11 @@ Most scheduled jobs fail silently: HA backups failed from June to Nov 2026, mpur
     backup (the staleness check covers it)
 - [ ] brookfield stays on the staleness check, with a grace period that survives a vacation
 - [ ] Scrutiny alerts by email (SMART changes on the pool and USB disks)
-- [ ] Monthly `ansible-playbook --check` on cartman (no `--diff`), reporting to healthchecks,
-      so playbook drift shows up within a month; brookfield gets a manual run after upgrades
+- [x] Monthly `ansible-playbook --check` on cartman (no `--diff`), reporting to healthchecks,
+      so playbook drift shows up within a month; brookfield gets a manual run after upgrades.
+      Done as homebook `bin/drift-check`, run by hand from brookfield: a timer can't reach
+      cartman without a passphrase-less sudo-capable key, so the check (30 days + 7 grace)
+      is the reminder. Check mode now reports changed=0 when nothing has drifted
 
 ---
 
