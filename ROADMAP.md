@@ -15,8 +15,10 @@ duplicacy (homebook) backs up cartman, brookfield and Home Assistant hourly to w
 and daily to B2. See homebook `docs/runbooks/duplicacy-backup.md`.
 
 - [ ] **Fix the mpuri001 Gmail backup.** offlineimap fails with "Invalid credentials" and
-      hasn't synced since 2021-12-14 (cron sends its output to `/dev/null`). New app password
-      in `imap_gmail_password_mpuri001`, or drop the account; then make a failed sync visible
+      hasn't synced since 2021-12-14 (cron sends its output to `/dev/null`). Decided
+      2026-11-19: keep the account. Generate a new Gmail app password for mpuri001, put it in
+      the vault as `SECRET_IMAP_GMAIL_PASSWORD_MALA` (what `offlineimaprc` reads for this
+      account), then add it to the offlineimap healthchecks.io ping (WS23)
 
 ---
 
@@ -236,7 +238,7 @@ Most scheduled jobs fail silently: HA backups failed from June to Nov 2026, mpur
   - [x] duplicacy hourly backup, `duplicacy check`, B2 copy, HA pull (the staleness check
         can't see a failed pull: the backup after it succeeds on stale files)
   - [x] pinboard (now verifies the download; an API error used to overwrite the backup)
-  - [ ] offlineimap (with WS5's mpuri001 fix, or it is red from day one)
+  - [ ] offlineimap (mpuri001 joins after WS5's new app password)
   - Skipped on purpose: both prunes (no data lost when one fails) and the HA duplicacy
     backup (the staleness check covers it)
 - [ ] brookfield stays on the staleness check, with a grace period that survives a vacation
