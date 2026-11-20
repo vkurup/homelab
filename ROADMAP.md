@@ -242,7 +242,9 @@ Most scheduled jobs fail silently: HA backups failed from June to Nov 2026, mpur
         `-a vvkurup` from the cron job)
   - Skipped on purpose: both prunes (no data lost when one fails) and the HA duplicacy
     backup (the staleness check covers it)
-- [ ] brookfield stays on the staleness check, with a grace period that survives a vacation
+- [x] brookfield stays on the staleness check, with a grace period that survives a vacation.
+      Done as: stale = online on the tailnet 24h+ after its last backup, plus a 14-day
+      backstop (homebook `files/duplicacy-staleness-check`)
 - [ ] Scrutiny alerts by email (SMART changes on the pool and USB disks)
 - [x] Monthly `ansible-playbook --check` on cartman (no `--diff`), reporting to healthchecks,
       so playbook drift shows up within a month; brookfield gets a manual run after upgrades.
