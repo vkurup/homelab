@@ -230,9 +230,15 @@ change dropped pyenv from `.bash_profile`.
 Most scheduled jobs fail silently: HA backups failed from June to Nov 2026, mpuri001 since
 2021, and a stalled B2 copy went unnoticed. Alerts go by email.
 
-- [ ] A healthchecks.io check per scheduled job on cartman (duplicacy backup, check, prune,
-      B2 copy and prune, HA pull and backup, offlineimap, pinboard); ping on success, so a
-      failure, a missed run or a hang alerts. Free tier: 20 checks. URLs in `~/.cron-secrets.env`
+- [ ] A healthchecks.io check per scheduled job on cartman that nothing else watches; ping
+      on success, so a failure, a missed run or a hang alerts. Free tier: 20 checks. Pattern
+      and list: homebook `docs/runbooks/duplicacy-backup.md` ("healthchecks.io pings")
+  - [x] duplicacy hourly backup, `duplicacy check`, B2 copy, HA pull (the staleness check
+        can't see a failed pull: the backup after it succeeds on stale files)
+  - [ ] offlineimap (with WS5's mpuri001 fix, or it is red from day one)
+  - [ ] pinboard (its curl needs `-f`, or an API error counts as success)
+  - Skipped on purpose: both prunes (no data lost when one fails) and the HA duplicacy
+    backup (the staleness check covers it)
 - [ ] brookfield stays on the staleness check, with a grace period that survives a vacation
 - [ ] Scrutiny alerts by email (SMART changes on the pool and USB disks)
 - [ ] Monthly `ansible-playbook --check` on cartman (no `--diff`), reporting to healthchecks,
