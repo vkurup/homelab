@@ -156,7 +156,9 @@ through duplicacy (about +$7/month). Google Takeout is itself the local copy: no
       `backup-acorn` (5.9G) is the only copy; ~$0.40/month
 - [x] Snapshots for irreplaceable datasets (Pictures, Music, home-backup since 2026-11-21;
       `archive` after its cleanup, WS18)
-- [ ] duplicacy for `archive/movies`, Pictures and the Shotwell library (about 1.2T more in B2)
+- [ ] duplicacy for `archive/movies`, Pictures and the Shotwell library (about 1.2T more in B2).
+      Runs are flock'd. Phase 1, Pictures + Shotwell (413G), deployed 2026-11-21; add
+      `+mnt/storage/archive/` and `+mnt/storage/archive/movies/*` (703G) once it's in B2
 - [ ] Check `duplicacy2` on wdmybook3tb holds nothing unique, then let it go
 - [ ] Verify the rescue copies, then retire wdmybook3tb (2,164 pending sectors)
 - [ ] Delete the empty `backup` dataset
