@@ -269,6 +269,36 @@ from monthly albums in Shotwell exported over waypipe.
 
 ---
 
+## WS25: Post-Migration Cleanup on cartman
+
+After the migration runbook (homebook `new-server-migration.md`) is finished.
+
+**Drift the playbook only fixes until the next reboot or night.** Both show as `changed`
+on every run, which hides real drift from the monthly check (WS23).
+
+- [ ] **Remove the swappiness task** from homebook's `base` role, and its line in
+      `/etc/sysctl.conf`. Set to 10 in 2020 as a desktop tweak; it does little on a
+      ZFS server (the ARC isn't governed by it). It hasn't applied at boot since the
+      rebuild anyway: systemd only reads `/etc/sysctl.d/`
+- [ ] **The HA backups dir flips owners every day.** The `desktop` role sets
+      `/home/vkbackup/ha-backups` to vkbackup; the nightly `rsync -a` from the Pi (as
+      root) sets it back to root, the owner of the Pi's `/backup`. Nothing needs vkbackup
+      there (the HA duplicacy backup runs as root), so set the task to `root:root`
+
+**Trim the packages.** cartman is headless now, but homebook's `desktop`, `vinod` and
+`base` roles still install things from its desktop days: `tcl`, `ledger`, probably more
+(`gnome-tweaks`, `ssh-askpass-gnome`, `mplayer`, `hdhomerun-config`, the gnome snaps kept
+in `base`).
+
+- [ ] List what each role installs on cartman and what actually uses it (cron jobs,
+      scripts, containers, interactive use)
+- [ ] Remove the unused ones in the roles (`state: absent`, so the box matches a fresh
+      build); split host-specific packages so brookfield keeps what it needs
+- [ ] Check what the new list pulls in through recommends (shotwell pulled in gdm3, whose
+      login screen suspended the box on 2026-11-21)
+
+---
+
 ## Someday / Maybe
 
 - **Audiobookshelf:** audiobooks and podcasts, on the same `/data` layout (maybe with WS13)

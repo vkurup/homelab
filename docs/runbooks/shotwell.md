@@ -42,9 +42,11 @@ of the Shotwell library.
 
 ## Setup
 
+homebook's `desktop` role does the cartman side. By hand:
+
 ```bash
-# cartman: Shotwell and its GTK libraries only, no desktop session
-sudo apt install shotwell waypipe sqlite3
+# cartman: no recommends, which would pull in gdm3, whose login screen suspends the server
+sudo apt install --no-install-recommends shotwell waypipe sqlite3
 
 # brookfield
 sudo apt install waypipe
