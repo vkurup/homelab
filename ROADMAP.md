@@ -172,6 +172,8 @@ which probably overlap.
 - [ ] Inventory both and find duplicates
 - [ ] Decide the layout (own dataset, irreplaceable per WS17; raw vs edited) and processing
 - [ ] Back up the consolidated library, then drop the duplicates
+- [ ] Once `archive` cleanup is done (this and `vpkurup-recovery`), opt `archive` into ZFS
+      snapshots in homebook (left off so deletes aren't pinned for 12 months)
 
 ---
 
