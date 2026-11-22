@@ -183,8 +183,8 @@ Inventory (2026-11-22):
 - [x] Inventory both and find duplicates
 - [x] Layout: `vkstoragepool/data/homevideos`, its own dataset (snapshots on) mounted at
       `data/media/homevideos`, so Jellyfin and the duplicacy filter are unchanged (2026-11-22)
-- [ ] Delete `/mnt/storage/data/media/homevideos.old` (the pre-dataset copy) after a clean
-      duplicacy run
+- [x] Delete `/mnt/storage/data/media/homevideos.old` (the pre-dataset copy) after a clean
+      duplicacy run (2026-11-22)
 - [ ] Once the WS17 phase 1 B2 copy is done, move `archive/movies` in (e.g. `imported/`); copy,
       verify with `rsync -n`, then remove the source
 - [ ] Back up the consolidated library, then drop the duplicates
