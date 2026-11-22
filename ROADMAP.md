@@ -171,6 +171,13 @@ through duplicacy (about +$7/month). Google Takeout is itself the local copy: no
 Consolidate `media/homevideos` (88G, backed up) and `archive/movies` (694G, not backed up),
 which probably overlap.
 
+Inventory (2026-11-22):
+- `homevideos`: 598 files, mostly avi. Year folders, `yt`, `reviewed`, and `NCYTE` (68G:
+  the kids' NC Youth Tap Ensemble shows). Holds a stray `.duplicacy/` from when it was its own
+  repo; drop it when consolidating.
+- `archive/movies`: 10,821 files, mostly mp4. `new` (670G), `raw` (32G), `complete` (1G).
+- Duplicates: `jdupes -r` over both, report in `~/ws18-dupes.txt` on cartman.
+
 - [ ] Inventory both and find duplicates
 - [ ] Decide the layout (own dataset, irreplaceable per WS17; raw vs edited) and processing
 - [ ] Back up the consolidated library, then drop the duplicates
