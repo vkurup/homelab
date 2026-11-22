@@ -156,8 +156,8 @@ through duplicacy (about +$7/month). Google Takeout is itself the local copy: no
 - [x] Snapshots for irreplaceable datasets (Pictures, Music, home-backup since 2026-11-21;
       `archive` after its cleanup, WS18)
 - [ ] duplicacy for `archive/movies`, Pictures and the Shotwell library (about 1.2T more in B2).
-      Runs are flock'd. Phase 1, Pictures + Shotwell (413G), deployed 2026-11-21; add
-      `+mnt/storage/archive/` and `+mnt/storage/archive/movies/*` (703G) once it's in B2
+      Runs are flock'd. Phase 1, Pictures + Shotwell (413G), deployed 2026-11-21. Phase 2 is
+      WS18's move of `archive/movies` into `data/media/homevideos`, which is already backed up
 - [ ] Check `duplicacy2` on wdmybook3tb holds nothing unique, then let it go
 - [ ] Verify the rescue copies, then retire wdmybook3tb (2,164 pending sectors)
 - [x] Delete the empty `backup` dataset (2026-11-22)
@@ -176,10 +176,17 @@ Inventory (2026-11-22):
   the kids' NC Youth Tap Ensemble shows). Holds a stray `.duplicacy/` from when it was its own
   repo; drop it when consolidating.
 - `archive/movies`: 10,821 files, mostly mp4. `new` (670G), `raw` (32G), `complete` (1G).
-- Duplicates: `jdupes -r` over both, report in `~/ws18-dupes.txt` on cartman.
+- Duplicates (`jdupes -r`, report in `~/ws18-dupes.txt` on cartman): 376 files in 327 sets,
+  37G. Only 42 sets span both; the rest are copies within `archive/movies`. The two barely
+  overlap, so consolidating is a move, not a dedupe.
 
-- [ ] Inventory both and find duplicates
-- [ ] Decide the layout (own dataset, irreplaceable per WS17; raw vs edited) and processing
+- [x] Inventory both and find duplicates
+- [x] Layout: `vkstoragepool/data/homevideos`, its own dataset (snapshots on) mounted at
+      `data/media/homevideos`, so Jellyfin and the duplicacy filter are unchanged (2026-11-22)
+- [ ] Delete `/mnt/storage/data/media/homevideos.old` (the pre-dataset copy) after a clean
+      duplicacy run
+- [ ] Once the WS17 phase 1 B2 copy is done, move `archive/movies` in (e.g. `imported/`); copy,
+      verify with `rsync -n`, then remove the source
 - [ ] Back up the consolidated library, then drop the duplicates
 - [ ] Once `archive` cleanup is done (this and `vpkurup-recovery`), opt `archive` into ZFS
       snapshots in homebook (left off so deletes aren't pinned for 12 months)
