@@ -25,3 +25,14 @@ life103 stack are unpinned; `gluetun` and `grampsweb` are pinned by digest, beca
 
 **WS11: System Metrics.** Netdata at `netdata.home.kurup.net`, local only. Its data is under
 `MEDIA_ROOT`, outside snapshots and backup, because a time-series DB would bloat both.
+
+**WS25: Post-Migration Cleanup on cartman** (2026-11-21, homebook). Drift: the swappiness
+setting is now laptop only (gone from cartman's `sysctl.conf`), and the HA backups dir is
+`root:root`, which the nightly pull keeps setting it to anyway. Packages: cartman lost what
+nothing there used: the GUI bits, preload, default-jre, dkms, openvpn, emacs, hugo, cmake,
+mplayer, ffmpeg, mpg123, mediainfo, unrar, hdhomerun-config, ledger and Finance::Quote.
+Brookfield keeps its copies. The Brother printer install is laptop only (it had failed on
+cartman and installed nothing). Mail: root's mail on cartman had been going to an unread
+`/var/mail/root` through postfix, including 35 smartd warnings. Now `msmtp-mta` forwards it
+through SES, so smartd and failed root cron jobs reach the inbox. The duplicacy
+prune/check/B2 jobs run under `cron-quiet`, so a successful run mails nothing.

@@ -1,7 +1,7 @@
 # Roadmap
 
 Home server stack on `cartman` (192.168.1.20). Finished workstreams move to
-[ROADMAP-done.md](ROADMAP-done.md) (WS1-4, 8, 10, 11); numbers are never reused.
+[ROADMAP-done.md](ROADMAP-done.md) (WS1-4, 8, 10, 11, 25); numbers are never reused.
 
 **Order (decided 2026-11-08, a few hours a week):** first protection: WS23, WS17, WS5.
 Then WS14. The rest after, one project at a time; the small ones (WS9, WS12, WS16) fit
@@ -230,6 +230,11 @@ change dropped pyenv from `.bash_profile`.
 - [ ] Pick the matching direnv pattern; migrate the `.envrc` files, homebook first
 - [ ] Update homebook's vinod role and the dotfiles to match on Linux and macOS
 - [ ] Remove unused Python versions
+- [ ] cartman needs neither pyenv nor asdf. It has no Python projects (just the old
+      3.7.0/3.9.0 and virtualenvs copied from the Hitachi), and ansible runs from brookfield.
+      So keep the pyenv install and its -dev build libraries to laptops, or replace them with
+      uv on both (checked 2026-11-22: 13 of 14 `.envrc` still use `layout pyenv`; only
+      my-servers uses uv)
 
 ---
 
@@ -275,33 +280,21 @@ from monthly albums in Shotwell exported over waypipe.
 
 ---
 
-## WS25: Post-Migration Cleanup on cartman
+## WS26: Backup Storage Trends
 
-After the migration runbook (homebook `new-server-migration.md`) is finished.
+The daily duplicacy jobs went quiet in WS25 (`cron-quiet`; output only on failure). Their
+reports were also how storage size got checked now and then. Today that means reading
+`/var/log/duplicacy-check.log` on cartman, which holds only the latest run and no history.
 
-**Drift the playbook only fixes until the next reboot or night.** Both show as `changed`
-on every run, which hides real drift from the monthly check (WS23).
-
-- [ ] **Remove the swappiness task** from homebook's `base` role, and its line in
-      `/etc/sysctl.conf`. Set to 10 in 2020 as a desktop tweak; it does little on a
-      ZFS server (the ARC isn't governed by it). It hasn't applied at boot since the
-      rebuild anyway: systemd only reads `/etc/sysctl.d/`
-- [ ] **The HA backups dir flips owners every day.** The `desktop` role sets
-      `/home/vkbackup/ha-backups` to vkbackup; the nightly `rsync -a` from the Pi (as
-      root) sets it back to root, the owner of the Pi's `/backup`. Nothing needs vkbackup
-      there (the HA duplicacy backup runs as root), so set the task to `root:root`
-
-**Trim the packages.** cartman is headless now, but homebook's `desktop`, `vinod` and
-`base` roles still install things from its desktop days: `tcl`, `ledger`, probably more
-(`gnome-tweaks`, `ssh-askpass-gnome`, `mplayer`, `hdhomerun-config`, the gnome snaps kept
-in `base`).
-
-- [ ] List what each role installs on cartman and what actually uses it (cron jobs,
-      scripts, containers, interactive use)
-- [ ] Remove the unused ones in the roles (`state: absent`, so the box matches a fresh
-      build); split host-specific packages so brookfield keeps what it needs
-- [ ] Check what the new list pulls in through recommends (shotwell pulled in gdm3, whose
-      login screen suspended the box on 2026-11-21)
+- [ ] Decide what to track: per-client snapshot size and unique chunk bytes (from
+      `duplicacy check -stats`), the storage's total size and free space on wdmybook4tb, and
+      B2 bucket size (cost)
+- [ ] Record it daily. Simplest: append one line per run to a CSV. Or push it to Netdata
+      (already running, local only) or Uptime Kuma
+- [ ] Look at it: a small page or chart, or a monthly summary mail (root's mail now reaches
+      the inbox)
+- [ ] Optional: alert on a jump (a sudden large backup, as in the May 2026 1.6TB incident) or
+      on free space dropping below a threshold
 
 ---
 
