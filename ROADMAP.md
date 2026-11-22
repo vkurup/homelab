@@ -150,7 +150,6 @@ through duplicacy (about +$7/month). Google Takeout is itself the local copy: no
 | `Music` | 29G | yes | yes |
 | `home-backup` | `~/backup`, 63G | yes | yes |
 | `archive` | google-takeout (1.1T), vpkurup-recovery (36G), movies (694G) | after WS18 | **no** |
-| `backup` | empty leftover | | |
 
 - [x] Confirm the classes. `~/backup` goes to B2: `gmail` (58G) is the offlineimap mirror,
       `backup-acorn` (5.9G) is the only copy; ~$0.40/month
@@ -161,7 +160,7 @@ through duplicacy (about +$7/month). Google Takeout is itself the local copy: no
       `+mnt/storage/archive/` and `+mnt/storage/archive/movies/*` (703G) once it's in B2
 - [ ] Check `duplicacy2` on wdmybook3tb holds nothing unique, then let it go
 - [ ] Verify the rescue copies, then retire wdmybook3tb (2,164 pending sectors)
-- [ ] Delete the empty `backup` dataset
+- [x] Delete the empty `backup` dataset (2026-11-22)
 - [ ] Sort through `archive/vpkurup-recovery`
 - [ ] Renew the Takeout schedule by Nov 2027 (a quarterly reminder mail runs)
 
