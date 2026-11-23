@@ -205,6 +205,11 @@ Folders: Vinod's Dropbox (`~/Sync/Vinod`) and one camera folder per family membe
 - [ ] Protect what stays: duplicacy for `~/Sync/Vinod` and/or file versioning on cartman
 - [ ] Remove retired devices (giannis, kenny); decide about drkurup.com (do1); Kavi's
       phone hasn't connected for months
+- [ ] Bring do1's Syncthing image up to date (my-servers `images/compose.yml`). It's pinned to
+      `linuxserver/syncthing:v1.12.1-ls43` (Jan 2021); current is 2.1.7. Dependabot only
+      proposes tags with the same `-ls43` suffix, so it creeps forward one 2021 patch at a time.
+      Jump the pin by hand (v1 → v2 is a major upgrade; check the migration notes), or drop
+      do1 from Syncthing if the drkurup.com decision above retires it
 - [ ] Use `~/Sync/Shared` or drop it from the playbook
 
 ---
@@ -310,6 +315,23 @@ reports were also how storage size got checked now and then. Today that means re
       the inbox)
 - [ ] Optional: alert on a jump (a sudden large backup, as in the May 2026 1.6TB incident) or
       on free space dropping below a threshold
+
+---
+
+## WS27: Fix my-servers CI Staging SSH
+
+my-servers CI rehearses every push to `main` on a throwaway droplet (`bin/staging-up`). About
+half the runs fail before Ansible starts: the new droplet answers `Permission denied
+(publickey)` for CI's freshly generated key, for the full 3-minute wait (Nov 19, and twice on
+Nov 23 for the syncthing merge). Runs in between passed with the same image and size.
+
+- [x] Confirm the cause (2026-11-23): `staging-up` built `--ssh-keys` from
+      `doctl compute ssh-key list` moments after CI imported its key, and that list lagged the
+      import, so the droplet never got CI's key. The first run with logging showed it directly
+- [x] Fix (my-servers PR #15, 2026-11-23): CI passes its key ID as `STAGING_SSH_KEY_ID` and
+      `staging-up` adds it if missing; key IDs are logged; the SSH wait is 10 minutes. First run
+      after merge: SSH in 23s, converged
+- [ ] Delete the leaked DO key `my-servers-ci-44658951986` (Nov 20 run; every droplet gets it)
 
 ---
 
