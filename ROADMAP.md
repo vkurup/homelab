@@ -331,7 +331,7 @@ Nov 23 for the syncthing merge). Runs in between passed with the same image and 
 - [x] Fix (my-servers PR #15, 2026-11-23): CI passes its key ID as `STAGING_SSH_KEY_ID` and
       `staging-up` adds it if missing; key IDs are logged; the SSH wait is 10 minutes. First run
       after merge: SSH in 23s, converged
-- [ ] Delete the leaked DO key `my-servers-ci-44658951986` (Nov 20 run; every droplet gets it)
+- [x] Delete the leaked DO key `my-servers-ci-44658951986` (Nov 20 run; deleted 2026-11-23)
 
 ---
 
