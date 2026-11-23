@@ -282,7 +282,7 @@ services:
   # https://www.grampsweb.org/install_setup/deployment/
   grampsweb: &grampsweb
     container_name: grampsweb
-    image: ghcr.io/gramps-project/grampsweb:latest@sha256:4348222c2ab2f5c53f15e7e170bd8b17db1c1691326e0e72b0d0d6df87724b94
+    image: ghcr.io/gramps-project/grampsweb:latest@sha256:bf672745c0428ec37f398f51a89e07a0dabe4f2abc1038fd0952e358ae0228a3
     #user: "1000:1000"
     restart: unless-stopped
     environment:
