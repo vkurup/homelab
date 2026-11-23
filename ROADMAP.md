@@ -146,7 +146,7 @@ through duplicacy (about +$7/month). Google Takeout is itself the local copy: no
 |---|---|---|---|
 | `config` | service state | yes | yes |
 | `data` | media | no | only `media/homevideos` |
-| `Pictures` | photos, 413G | yes | **no** (WS14) |
+| `Pictures` | photos, 413G | yes | yes (since 2026-11-21) |
 | `Music` | 29G | yes | yes |
 | `home-backup` | `~/backup`, 63G | yes | yes |
 | `archive` | google-takeout (1.1T), vpkurup-recovery (36G), movies (694G) | after WS18 | **no** |
@@ -156,8 +156,10 @@ through duplicacy (about +$7/month). Google Takeout is itself the local copy: no
 - [x] Snapshots for irreplaceable datasets (Pictures, Music, home-backup since 2026-11-21;
       `archive` after its cleanup, WS18)
 - [ ] duplicacy for `archive/movies`, Pictures and the Shotwell library (about 1.2T more in B2).
-      Runs are flock'd. Phase 1, Pictures + Shotwell (413G), deployed 2026-11-21. Phase 2 is
-      WS18's move of `archive/movies` into `data/media/homevideos`, which is already backed up
+      Runs are flock'd. Phase 1, Pictures + Shotwell, is done: the first B2 copy finished by
+      2026-11-23 (B2 cartman rev 49965 holds 146k Pictures files, 466G; it held the lock, so the
+      11-22 copy was skipped and the 11-23 one catches up). Phase 2 is WS18's move of
+      `archive/movies` into `data/media/homevideos`, which is already backed up
 - [ ] Check `duplicacy2` on wdmybook3tb holds nothing unique, then let it go
 - [ ] Verify the rescue copies, then retire wdmybook3tb (2,164 pending sectors)
 - [x] Delete the empty `backup` dataset (2026-11-22)
@@ -185,7 +187,7 @@ Inventory (2026-11-22):
       `data/media/homevideos`, so Jellyfin and the duplicacy filter are unchanged (2026-11-22)
 - [x] Delete `/mnt/storage/data/media/homevideos.old` (the pre-dataset copy) after a clean
       duplicacy run (2026-11-22)
-- [ ] Once the WS17 phase 1 B2 copy is done, move `archive/movies` in (e.g. `imported/`); copy,
+- [ ] Move `archive/movies` in (e.g. `imported/`; unblocked 2026-11-23, WS17 phase 1 is done); copy,
       verify with `rsync -n`, then remove the source
 - [ ] Back up the consolidated library, then drop the duplicates
 - [ ] Once `archive` cleanup is done (this and `vpkurup-recovery`), opt `archive` into ZFS
