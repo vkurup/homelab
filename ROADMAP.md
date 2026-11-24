@@ -149,7 +149,7 @@ through duplicacy (about +$7/month). Google Takeout is itself the local copy: no
 | `Pictures` | photos, 413G | yes | yes (since 2026-11-21) |
 | `Music` | 29G | yes | yes |
 | `home-backup` | `~/backup`, 63G | yes | yes |
-| `archive` | google-takeout (1.1T), vpkurup-recovery (36G), movies (694G) | after WS18 | **no** |
+| `archive` | google-takeout (1.1T), vpkurup-recovery (36G) | after WS18 | **no** |
 
 - [x] Confirm the classes. `~/backup` goes to B2: `gmail` (58G) is the offlineimap mirror,
       `backup-acorn` (5.9G) is the only copy; ~$0.40/month
@@ -187,9 +187,14 @@ Inventory (2026-11-22):
       `data/media/homevideos`, so Jellyfin and the duplicacy filter are unchanged (2026-11-22)
 - [x] Delete `/mnt/storage/data/media/homevideos.old` (the pre-dataset copy) after a clean
       duplicacy run (2026-11-22)
-- [ ] Move `archive/movies` in (e.g. `imported/`; unblocked 2026-11-23, WS17 phase 1 is done); copy,
-      verify with `rsync -n`, then remove the source
-- [ ] Back up the consolidated library, then drop the duplicates
+- [x] Move `archive/movies` into `homevideos/imported/` (2026-11-24). rsync copy, then
+      `rsync -n --checksum` found no differences (10,821 files, 755,964,174,396 bytes both
+      sides); in local duplicacy from rev 50017; source deleted, `archive` 1.74T → 1.05T
+- [ ] Confirm B2 holds a cartman revision with all of `imported/` (the 2026-11-24 21:01 copy
+      should carry it; the 11-23 copy only had the part copied by 16:50)
+- [ ] Drop the duplicates: rerun `jdupes -r` on `homevideos` (the old report's paths point at
+      `archive/movies`), keep one of each, prefer the year folders over `imported/`
+- [ ] Drop the stray `homevideos/.duplicacy/`
 - [ ] Once `archive` cleanup is done (this and `vpkurup-recovery`), opt `archive` into ZFS
       snapshots in homebook (left off so deletes aren't pinned for 12 months)
 
