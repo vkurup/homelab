@@ -197,7 +197,8 @@ Inventory (2026-11-22):
       outside `imported/` when there was one, else the earliest name; `cmp`-verified all 376
       pairs, then deleted the extras (36.7G, freed as `homevideos` snapshots expire). Plan and
       script in `~/ws18-dedupe-plan.txt` and `~/ws18-dedupe.sh` on cartman
-- [ ] Drop the stray `homevideos/.duplicacy/`
+- [x] Drop the stray `homevideos/.duplicacy/`: already gone. It didn't come across in the
+      2026-11-22 move to the new dataset and isn't in its oldest snapshot
 - [ ] Once `archive` cleanup is done (this and `vpkurup-recovery`), opt `archive` into ZFS
       snapshots in homebook (left off so deletes aren't pinned for 12 months)
 
