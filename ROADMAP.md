@@ -149,7 +149,7 @@ through duplicacy (about +$7/month). Google Takeout is itself the local copy: no
 | `Pictures` | photos, 413G | yes | yes (since 2026-11-21) |
 | `Music` | 29G | yes | yes |
 | `home-backup` | `~/backup`, 63G | yes | yes |
-| `archive` | google-takeout (1.1T), vpkurup-recovery (34G) | no (decided 2026-11-24) | **no** |
+| `archive` | google-takeout (1.1T) | no (decided 2026-11-24) | **no** |
 
 - [x] Confirm the classes. `~/backup` goes to B2: `gmail` (58G) is the offlineimap mirror,
       `backup-acorn` (5.9G) is the only copy; ~$0.40/month
@@ -164,8 +164,7 @@ through duplicacy (about +$7/month). Google Takeout is itself the local copy: no
 - [ ] Check `duplicacy2` on wdmybook3tb holds nothing unique, then let it go
 - [ ] Verify the rescue copies, then retire wdmybook3tb (2,164 pending sectors)
 - [x] Delete the empty `backup` dataset (2026-11-22)
-- [ ] Sort through `archive/vpkurup-recovery` (34G, 1,040 files); keepers move to a snapshotted,
-      backed-up dataset (WS18)
+- [x] Sort through `archive/vpkurup-recovery` (2026-11-24): all kept, moved out, source deleted (WS18)
 - [ ] Renew the Takeout schedule by Nov 2027 (a quarterly reminder mail runs)
 
 ---
@@ -200,11 +199,15 @@ Inventory (2026-11-22):
       script in `~/ws18-dedupe-plan.txt` and `~/ws18-dedupe.sh` on cartman
 - [x] Drop the stray `homevideos/.duplicacy/`: already gone. It didn't come across in the
       2026-11-22 move to the new dataset and isn't in its oldest snapshot
-- [ ] Don't snapshot `archive` (decided 2026-11-24). Each quarterly Takeout export could pin
-      the previous 1.1T for up to 12 months, and 2.85T free fits two or three. Instead, when
-      sorting `vpkurup-recovery` (WS17), move the keepers into `home-backup` or `Pictures`
-      (snapshots + duplicacy → B2) and delete the rest; `archive` stays the Takeout dump with
-      snapshots off. Done when `vpkurup-recovery` is gone
+- [x] Don't snapshot `archive` (decided 2026-11-24). Each quarterly Takeout export could pin
+      the previous 1.1T for up to 12 months, and 2.85T free fits two or three. `archive` stays
+      the Takeout dump with snapshots off
+- [x] Move `vpkurup-recovery` out (2026-11-24). One Windows profile (`C:\Users\vpkurup`), 34G,
+      1,040 files, none of it elsewhere. Kept all: personal recordings (Captures, 2008 Movies,
+      Home Movie-2, Voice Memos; 36 files) → `homevideos/vpkurup/`; Vedanta lectures, devotional
+      audio, iTunes books and lecture DVD/VCD rips (1,004 files) → `~/Music/vpkurup/`. Both have
+      snapshots + duplicacy. Checksum-verified (38,388,454,788 bytes both sides), source deleted;
+      script in `~/vpk-move.sh` on cartman
 
 ---
 
