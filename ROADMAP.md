@@ -193,8 +193,10 @@ Inventory (2026-11-22):
       sides); in local duplicacy from rev 50017; source deleted, `archive` 1.74T → 1.05T
 - [ ] Confirm B2 holds a cartman revision with all of `imported/` (the 2026-11-24 21:01 copy
       should carry it; the 11-23 copy only had the part copied by 16:50)
-- [ ] Drop the duplicates: rerun `jdupes -r` on `homevideos` (the old report's paths point at
-      `archive/movies`), keep one of each, prefer the year folders over `imported/`
+- [x] Drop the duplicates (2026-11-24): `jdupes -r` found 327 sets, 703 files. Kept the copy
+      outside `imported/` when there was one, else the earliest name; `cmp`-verified all 376
+      pairs, then deleted the extras (36.7G, freed as `homevideos` snapshots expire). Plan and
+      script in `~/ws18-dedupe-plan.txt` and `~/ws18-dedupe.sh` on cartman
 - [ ] Drop the stray `homevideos/.duplicacy/`
 - [ ] Once `archive` cleanup is done (this and `vpkurup-recovery`), opt `archive` into ZFS
       snapshots in homebook (left off so deletes aren't pinned for 12 months)
