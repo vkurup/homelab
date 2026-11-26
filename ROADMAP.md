@@ -14,11 +14,10 @@ between big ones. What matters most to keep: home video, then photos, then `~/Sy
 duplicacy (homebook) backs up cartman, brookfield and Home Assistant hourly to wdmybook4tb
 and daily to B2. See homebook `docs/runbooks/duplicacy-backup.md`.
 
-- [ ] **Fix the mpuri001 Gmail backup.** offlineimap fails with "Invalid credentials" and
-      hasn't synced since 2021-12-14 (cron sends its output to `/dev/null`). Decided
-      2026-11-19: keep the account. Generate a new Gmail app password for mpuri001, put it in
-      the vault as `SECRET_IMAP_GMAIL_PASSWORD_MALA` (what `offlineimaprc` reads for this
-      account), then add it to the offlineimap healthchecks.io ping (WS23)
+- [x] **Fix the mpuri001 Gmail backup** (2026-11-25). It had failed with "Invalid credentials"
+      since 2021-12-14. New app password (needed 2-Step Verification turned on) in the vault as
+      `SECRET_IMAP_GMAIL_PASSWORD_MALA`; first full sync done (38G); the nightly cron job and
+      its healthchecks.io ping now cover both accounts
 
 ---
 
@@ -285,8 +284,7 @@ Most scheduled jobs fail silently: HA backups failed from June to Nov 2026, mpur
   - [x] duplicacy hourly backup, `duplicacy check`, B2 copy, HA pull (the staleness check
         can't see a failed pull: the backup after it succeeds on stale files)
   - [x] pinboard (now verifies the download; an API error used to overwrite the backup)
-  - [x] offlineimap, vvkurup only; mpuri001 joins after WS5's new app password (drop
-        `-a vvkurup` from the cron job)
+  - [x] offlineimap, both accounts (mpuri001 joined 2026-11-25 after WS5's new app password)
   - Skipped on purpose: both prunes (no data lost when one fails) and the HA duplicacy
     backup (the staleness check covers it)
 - [x] brookfield stays on the staleness check, with a grace period that survives a vacation.
