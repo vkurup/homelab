@@ -161,7 +161,12 @@ through duplicacy (about +$7/month). Google Takeout is itself the local copy: no
       11-22 copy was skipped and the 11-23 one catches up). Phase 2: WS18 moved
       `archive/movies` into `data/media/homevideos/imported/` (2026-11-24), already in the
       duplicacy filter; B2 holds it since 2026-11-26 (WS18's B2 item)
-- [ ] Check `duplicacy2` on wdmybook3tb holds nothing unique, then let it go
+- [x] Check `duplicacy2` on wdmybook3tb holds nothing unique, then let it go (2026-11-26).
+      Unencrypted, 3 revisions from Aug 2025 (`cartman-home` r1-2, `homevideos` r1). Matched by
+      file hash against cartman rev 50080: `homevideos` all present; `cartman-home` 535G, 3.4G
+      not. That was 11 July 2025 phone photos and 3 webcam videos (restored to `~/d2-rescue` on
+      cartman, keep-or-delete pending), ~42k gmail messages since deleted (vvkurup `bak.*`,
+      mpuri001: let go), old `dev/` file versions and dotfiles
 - [ ] Verify the rescue copies, then retire wdmybook3tb (2,164 pending sectors)
 - [x] Delete the empty `backup` dataset (2026-11-22)
 - [x] Sort through `archive/vpkurup-recovery` (2026-11-24): all kept, moved out, source deleted (WS18)
