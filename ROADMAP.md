@@ -164,8 +164,8 @@ through duplicacy (about +$7/month). Google Takeout is itself the local copy: no
 - [x] Check `duplicacy2` on wdmybook3tb holds nothing unique, then let it go (2026-11-26).
       Unencrypted, 3 revisions from Aug 2025 (`cartman-home` r1-2, `homevideos` r1). Matched by
       file hash against cartman rev 50080: `homevideos` all present; `cartman-home` 535G, 3.4G
-      not. That was 11 July 2025 phone photos and 3 webcam videos (restored to `~/d2-rescue` on
-      cartman, keep-or-delete pending), ~42k gmail messages since deleted (vvkurup `bak.*`,
+      not. That was 11 July 2025 phone photos and 3 webcam videos (restored to `~/Pictures` and
+      `~/Videos/Webcam`, kept), ~42k gmail messages since deleted (vvkurup `bak.*`,
       mpuri001: let go), old `dev/` file versions and dotfiles
 - [ ] Verify the rescue copies, then retire wdmybook3tb (2,164 pending sectors)
 - [x] Delete the empty `backup` dataset (2026-11-22)
