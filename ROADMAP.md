@@ -98,7 +98,8 @@ Decided: Immich, importing into Immich-managed storage on the pool with `immich-
 Immich app replaces Syncthing for phone photos; shared links for people without accounts;
 pin the version. **Google stays on until a B2 restore is verified.**
 
-- [ ] Backup first: snapshots and duplicacy → B2 for the photo data (with WS17)
+- [x] Backup first: snapshots and duplicacy → B2 for the photo data (with WS17). Pictures and
+      the Shotwell library: snapshots since 2026-11-21, in B2 since 2026-11-23
 - [ ] Immich stack in compose.yml (server, ML, Postgres with vectors, Redis), `/dev/dri`
 - [ ] Traefik route (`photos.home.kurup.net`) and Homepage tile
 - [ ] Five accounts; partner sharing / family albums
