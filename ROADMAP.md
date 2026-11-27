@@ -167,7 +167,13 @@ through duplicacy (about +$7/month). Google Takeout is itself the local copy: no
       not. That was 11 July 2025 phone photos and 3 webcam videos (restored to `~/Pictures` and
       `~/Videos/Webcam`, kept), ~42k gmail messages since deleted (vvkurup `bak.*`,
       mpuri001: let go), old `dev/` file versions and dotfiles
-- [ ] Verify the rescue copies, then retire wdmybook3tb (2,164 pending sectors)
+- [x] Verify the rescue copies (2026-11-26). Every `movies` and `vpkurup-recovery` file on
+      wdmybook3tb has a same-size pool copy (10,359 + 1,040 by name too; 372 under another name,
+      the WS18 dedupe); the first 168 `cmp`'d identical, then both dirs were deleted from the
+      disk. Its 2023-04-28 Takeout (14 zips, 700G) isn't on the pool: not kept, the 2026-11-07
+      export replaces it
+- [ ] Retire wdmybook3tb (2,164 pending sectors): drop it from homebook's `usb_disks`, unmount,
+      unplug, shred. Nothing on it is kept (`duplicacy2`, 2023 Takeout)
 - [x] Delete the empty `backup` dataset (2026-11-22)
 - [x] Sort through `archive/vpkurup-recovery` (2026-11-24): all kept, moved out, source deleted (WS18)
 - [ ] Renew the Takeout schedule by Nov 2027 (a quarterly reminder mail runs)
