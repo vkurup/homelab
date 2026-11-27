@@ -172,8 +172,10 @@ through duplicacy (about +$7/month). Google Takeout is itself the local copy: no
       the WS18 dedupe); the first 168 `cmp`'d identical, then both dirs were deleted from the
       disk. Its 2023-04-28 Takeout (14 zips, 700G) isn't on the pool: not kept, the 2026-11-07
       export replaces it
-- [ ] Retire wdmybook3tb (2,164 pending sectors): drop it from homebook's `usb_disks`, unmount,
-      unplug, shred. Nothing on it is kept (`duplicacy2`, 2023 Takeout)
+- [ ] Retire wdmybook3tb (2,164 pending sectors). Nothing on it is kept (`duplicacy2`, 2023
+      Takeout). Out of homebook's `usb_disks`, unmounted, out of fstab (2026-11-26); a one-pass
+      zero wipe started 11-26 22:45 (`~/wipe-wdmybook3tb.log` on cartman; sectors the drive
+      can't rewrite keep their data). Then unplug it and take it to the shredder
 - [x] Delete the empty `backup` dataset (2026-11-22)
 - [x] Sort through `archive/vpkurup-recovery` (2026-11-24): all kept, moved out, source deleted (WS18)
 - [ ] Renew the Takeout schedule by Nov 2027 (a quarterly reminder mail runs)
